@@ -10,6 +10,7 @@ import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function BillsPage() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
@@ -17,6 +18,7 @@ export default function BillsPage() {
   const [selectedBill, setSelectedBill] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { formatCurrency } = useCurrency();
 
   const { data: bills, isLoading } = useQuery({
     queryKey: ["/api/bills"],
@@ -54,12 +56,7 @@ export default function BillsPage() {
     }
   };
 
-  const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(parseFloat(amount));
-  };
+  // Remove the old formatCurrency function since we're using the context version
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -96,7 +93,7 @@ export default function BillsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />

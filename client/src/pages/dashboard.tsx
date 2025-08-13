@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />

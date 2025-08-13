@@ -8,15 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Settings, User, Bell, Shield, Palette, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
 export default function SettingsPage() {
   const { isDarkMode, setDarkMode } = useTheme();
+  const { currency, setCurrency } = useCurrency();
   const [settings, setSettings] = useState({
     notifications: true,
     emailReports: false,
-    currency: 'INR',
     language: 'en',
     autoSync: true,
     dataRetention: '1year'
@@ -35,12 +36,12 @@ export default function SettingsPage() {
     setSettings({
       notifications: true,
       emailReports: false,
-      currency: 'INR',
       language: 'en',
       autoSync: true,
       dataRetention: '1year'
     });
     setDarkMode(false);
+    setCurrency('INR');
     toast({
       title: "Settings reset",
       description: "All settings have been reset to default values"
@@ -48,7 +49,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />
@@ -182,7 +183,7 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="currency">Currency</Label>
-                  <Select value={settings.currency} onValueChange={(value) => setSettings({...settings, currency: value})}>
+                  <Select value={currency} onValueChange={setCurrency}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

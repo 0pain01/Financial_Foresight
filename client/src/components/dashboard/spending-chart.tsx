@@ -3,9 +3,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function SpendingChart() {
   const [duration, setDuration] = useState("6months");
+  const { formatCurrency } = useCurrency();
   
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions"],
@@ -46,6 +48,20 @@ export default function SpendingChart() {
         monthsBack = 6;
     }
     
+    // If no transactions, create empty chart data for the selected period
+    if (!transactions || transactions.length === 0) {
+      const emptyData = [];
+      for (let i = monthsBack - 1; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        emptyData.push({
+          month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          expenses: 0,
+          income: 0
+        });
+      }
+      return emptyData;
+    }
+    
     const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
     
     const filteredTransactions = transactions.filter((transaction: any) => {
@@ -54,6 +70,13 @@ export default function SpendingChart() {
     });
     
     const monthlyData: Record<string, { month: string, expenses: number, income: number }> = {};
+    
+    // Initialize all months in the range with zero values
+    for (let i = monthsBack - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      monthlyData[monthKey] = { month: monthKey, expenses: 0, income: 0 };
+    }
     
     filteredTransactions.forEach((transaction: any) => {
       const date = new Date(transaction.date);
@@ -71,7 +94,7 @@ export default function SpendingChart() {
       }
     });
     
-    return Object.values(monthlyData).slice(-monthsBack);
+    return Object.values(monthlyData);
   })() : [];
 
   return (
@@ -98,7 +121,7 @@ export default function SpendingChart() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
+              <Tooltip formatter={(value: number) => [formatCurrency(value), '']} />
               <Line 
                 type="monotone" 
                 dataKey="expenses" 

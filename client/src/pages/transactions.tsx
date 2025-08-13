@@ -13,6 +13,7 @@ import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function TransactionsPage() {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -24,6 +25,7 @@ export default function TransactionsPage() {
   const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { formatCurrency } = useCurrency();
 
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions"],
@@ -73,12 +75,7 @@ export default function TransactionsPage() {
 
   const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
 
-  const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(parseFloat(amount));
-  };
+  // Remove the old formatCurrency function since we're using the context version
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -104,7 +101,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />

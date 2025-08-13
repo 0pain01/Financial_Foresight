@@ -51,6 +51,7 @@ export default function EditBillModal({ isOpen, onClose, bill }: EditBillModalPr
   // Update form values when bill prop changes
   React.useEffect(() => {
     if (bill) {
+      console.log("Updating form with bill data:", bill);
       form.reset({
         name: bill.name || "",
         amount: bill.amount || "",
@@ -105,7 +106,7 @@ export default function EditBillModal({ isOpen, onClose, bill }: EditBillModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">Edit Bill</DialogTitle>
         </DialogHeader>
