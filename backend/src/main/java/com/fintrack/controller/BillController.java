@@ -18,12 +18,15 @@ public class BillController {
 
     @GetMapping("/bills")
     public ResponseEntity<List<Bill>> getBills() {
+        System.out.println("Received GET /bills request");
         List<Bill> bills = billRepository.findByUserId(1L); // demo user
+        System.out.println("Returning " + bills.size() + " bills");
         return ResponseEntity.ok(bills);
     }
 
     @PostMapping("/bills")
     public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
+        System.out.println("Received bill creation request: " + bill);
         bill.setUserId(1L); // demo user
         if (bill.getIsRecurring() == null) {
             bill.setIsRecurring(false);
@@ -32,6 +35,7 @@ public class BillController {
             bill.setAutoPayEnabled(false);
         }
         Bill savedBill = billRepository.save(bill);
+        System.out.println("Bill saved successfully: " + savedBill.getId());
         return ResponseEntity.ok(savedBill);
     }
 

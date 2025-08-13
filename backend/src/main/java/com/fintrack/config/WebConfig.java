@@ -27,10 +27,10 @@ public class WebConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(allowCredentials);
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        config.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
-        config.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*"); // More permissive for development
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

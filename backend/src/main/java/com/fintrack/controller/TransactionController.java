@@ -25,9 +25,11 @@ public class TransactionController {
 
     @PostMapping("/transactions")
     public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+        System.out.println("Received transaction creation request: " + transaction);
         transaction.setUserId(1L); // demo user
         transaction.setCreatedAt(LocalDateTime.now());
         Transaction savedTransaction = transactionRepository.save(transaction);
+        System.out.println("Transaction saved successfully: " + savedTransaction.getId());
         return ResponseEntity.ok(savedTransaction);
     }
 
