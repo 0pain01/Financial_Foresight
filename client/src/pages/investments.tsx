@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import AddInvestmentModal from "@/components/modals/add-investment-modal";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
@@ -29,7 +30,7 @@ export default function InvestmentsPage() {
   const calculateTotalGain = () => {
     if (!investments) return 0;
     return investments.reduce((sum: number, inv: any) => {
-      const cost = parseFloat(inv.quantity) * parseFloat(inv.purchasePrice);
+      const cost = parseFloat(inv.shares) * parseFloat(inv.avgCost);
       const current = parseFloat(inv.currentValue);
       return sum + (current - cost);
     }, 0);
@@ -153,7 +154,7 @@ export default function InvestmentsPage() {
                 <div className="space-y-4">
                   {investments && investments.length > 0 ? (
                     investments.map((investment: any) => {
-                      const cost = parseFloat(investment.quantity) * parseFloat(investment.purchasePrice);
+                      const cost = parseFloat(investment.shares) * parseFloat(investment.avgCost);
                       const current = parseFloat(investment.currentValue);
                       const gain = current - cost;
                       const gainPercent = cost > 0 ? (gain / cost) * 100 : 0;
@@ -171,8 +172,8 @@ export default function InvestmentsPage() {
                               <Badge variant="secondary">{investment.type}</Badge>
                             </div>
                             <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                              <span>{investment.quantity} shares</span>
-                              <span>@ {formatCurrency(investment.purchasePrice)}</span>
+                              <span>{investment.shares} shares</span>
+                              <span>@ {formatCurrency(investment.avgCost)}</span>
                               <span>Cost: {formatCurrency(cost)}</span>
                             </div>
                           </div>
@@ -207,6 +208,12 @@ export default function InvestmentsPage() {
           </Card>
         </div>
       </main>
+
+      {/* Modal */}
+      <AddInvestmentModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </div>
   );
 }
