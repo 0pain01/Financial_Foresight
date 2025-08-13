@@ -20,7 +20,21 @@ export default function ImportDataPage() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      return apiRequest("POST", "/api/import/csv", formData);
+      
+      console.log("Uploading CSV file:", file.name);
+      
+      const response = await fetch("/api/import/csv", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`${response.status}: ${text}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
