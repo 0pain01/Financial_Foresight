@@ -42,32 +42,32 @@ export default function Sidebar() {
             <Receipt className="mr-3 h-4 w-4" />
             Bills & Utilities
           </Link>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          <Link href="/analytics" className={getNavItemClass("/analytics")}>
             <PieChart className="mr-3 h-4 w-4" />
             Analytics
-          </a>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          </Link>
+          <Link href="/investments" className={getNavItemClass("/investments")}>
             <Sprout className="mr-3 h-4 w-4" />
             Investments
-          </a>
+          </Link>
         </div>
         
         <div className="px-6 py-3 mt-6">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tools</h3>
         </div>
         <div className="space-y-1">
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          <Link href="/ai-insights" className={getNavItemClass("/ai-insights")}>
             <Bot className="mr-3 h-4 w-4" />
             AI Insights
-          </a>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          </Link>
+          <Link href="/import-data" className={getNavItemClass("/import-data")}>
             <Upload className="mr-3 h-4 w-4" />
             Import Data
-          </a>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          </Link>
+          <Link href="/settings" className={getNavItemClass("/settings")}>
             <Settings className="mr-3 h-4 w-4" />
             Settings
-          </a>
+          </Link>
         </div>
       </nav>
     </aside>

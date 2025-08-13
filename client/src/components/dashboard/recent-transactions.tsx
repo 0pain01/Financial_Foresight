@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Utensils, Building, Fuel, ShoppingBag, Car, CreditCard, Receipt, Home } from "lucide-react";
+import { Link } from "wouter";
 
 export default function RecentTransactions() {
   const { data: transactions, isLoading } = useQuery({
@@ -70,7 +71,7 @@ export default function RecentTransactions() {
       <CardHeader className="border-b border-gray-100">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900">Recent Transactions</CardTitle>
-          <a href="#" className="text-finance-blue text-sm font-medium hover:text-blue-700">View All</a>
+          <Link href="/transactions" className="text-finance-blue text-sm font-medium hover:text-blue-700">View All</Link>
         </div>
       </CardHeader>
       
