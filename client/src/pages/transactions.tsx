@@ -20,8 +20,8 @@ export default function TransactionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isCSVModalOpen, setIsCSVModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -65,8 +65,8 @@ export default function TransactionsPage() {
   const filteredTransactions = transactions?.filter((transaction: any) => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || transaction.category === selectedCategory;
-    const matchesType = !selectedType || transaction.type === selectedType;
+    const matchesCategory = selectedCategory === "all" || !selectedCategory || transaction.category === selectedCategory;
+    const matchesType = selectedType === "all" || !selectedType || transaction.type === selectedType;
     
     return matchesSearch && matchesCategory && matchesType;
   }) || [];
@@ -141,7 +141,7 @@ export default function TransactionsPage() {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
@@ -152,7 +152,7 @@ export default function TransactionsPage() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="income">Income</SelectItem>
                 <SelectItem value="expense">Expense</SelectItem>
               </SelectContent>

@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,14 +34,28 @@ export default function EditBillModal({ isOpen, onClose, bill }: EditBillModalPr
   const form = useForm<z.infer<typeof editBillSchema>>({
     resolver: zodResolver(editBillSchema),
     defaultValues: {
-      name: bill?.name || "",
-      amount: bill?.amount || "",
-      category: bill?.category || "",
-      dueDate: bill?.dueDate ? new Date(bill.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      status: bill?.status || "pending",
-      paymentMethod: bill?.paymentMethod || ""
+      name: "",
+      amount: "",
+      category: "",
+      dueDate: new Date().toISOString().split('T')[0],
+      status: "pending",
+      paymentMethod: ""
     }
   });
+
+  // Update form values when bill prop changes
+  React.useEffect(() => {
+    if (bill) {
+      form.reset({
+        name: bill.name || "",
+        amount: bill.amount || "",
+        category: bill.category || "",
+        dueDate: bill.dueDate ? new Date(bill.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        status: bill.status || "pending",
+        paymentMethod: bill.paymentMethod || ""
+      });
+    }
+  }, [bill, form]);
 
   const editBillMutation = useMutation({
     mutationFn: async (data: z.infer<typeof editBillSchema>) => {

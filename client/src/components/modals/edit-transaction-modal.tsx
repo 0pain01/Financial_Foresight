@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,14 +38,28 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: transaction?.amount || "",
-      description: transaction?.description || "",
-      category: transaction?.category || "",
-      type: transaction?.type || "expense",
-      date: transaction?.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      paymentMethod: transaction?.paymentMethod || ""
+      amount: "",
+      description: "",
+      category: "",
+      type: "expense",
+      date: new Date().toISOString().split('T')[0],
+      paymentMethod: ""
     }
   });
+
+  // Update form values when transaction prop changes
+  React.useEffect(() => {
+    if (transaction) {
+      form.reset({
+        amount: transaction.amount || "",
+        description: transaction.description || "",
+        category: transaction.category || "",
+        type: transaction.type || "expense",
+        date: transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        paymentMethod: transaction.paymentMethod || ""
+      });
+    }
+  }, [transaction, form]);
 
   const editTransactionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
