@@ -33,9 +33,28 @@ public class TransactionController {
         return ResponseEntity.ok(savedTransaction);
     }
 
+    @PutMapping("/transactions/{id}")
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody Transaction transaction) {
+        System.out.println("Received transaction update request for ID: " + id);
+        if (!transactionRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        transaction.setId(id);
+        transaction.setUserId(1L); // demo user
+        transaction.setCreatedAt(LocalDateTime.now());
+        Transaction updatedTransaction = transactionRepository.save(transaction);
+        System.out.println("Transaction updated successfully: " + updatedTransaction.getId());
+        return ResponseEntity.ok(updatedTransaction);
+    }
+
     @DeleteMapping("/transactions/{id}")
     public ResponseEntity<?> deleteTransaction(@PathVariable Long id) {
+        System.out.println("Received transaction delete request for ID: " + id);
+        if (!transactionRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
         transactionRepository.deleteById(id);
+        System.out.println("Transaction deleted successfully: " + id);
         return ResponseEntity.ok().build();
     }
 }
