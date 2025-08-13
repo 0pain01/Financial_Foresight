@@ -47,9 +47,13 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
 
   const addTransactionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return apiRequest("POST", "/api/transactions", data);
+      console.log("Submitting transaction data:", data);
+      const response = await apiRequest("POST", "/api/transactions", data);
+      console.log("Transaction submission response:", response);
+      return response;
     },
     onSuccess: () => {
+      console.log("Transaction added successfully");
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       toast({
@@ -59,10 +63,11 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
       form.reset();
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Failed to add transaction:", error);
       toast({
         title: "Error",
-        description: "Failed to add transaction",
+        description: `Failed to add transaction: ${error.message}`,
         variant: "destructive"
       });
     }
