@@ -281,7 +281,7 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="data-retention">Data Retention</Label>
-                  <Select value={settings.dataRetention} onValueChange={(value) => setSettings({...settings, dataRetention: value})}>
+                  <Select value={appearance.dataRetention} onValueChange={(value) => updateAppearance({ dataRetention: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
