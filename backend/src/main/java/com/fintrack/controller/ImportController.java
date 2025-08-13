@@ -1,0 +1,78 @@
+package com.fintrack.controller;
+
+import com.fintrack.model.Transaction;
+import com.fintrack.repository.TransactionRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+public class ImportController {
+    private final TransactionRepository transactionRepository;
+
+    public ImportController(TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
+    }
+
+    @PostMapping("/import/csv")
+    public ResponseEntity<?> importCsv(@RequestParam("file") MultipartFile file) {
+        try {
+            int imported = 0;
+            int total = 0;
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
+            String line;
+            boolean firstLine = true;
+
+            while ((line = reader.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue; // Skip header
+                }
+
+                String[] parts = line.split(",");
+                if (parts.length >= 4) {
+                    try {
+                        Transaction transaction = new Transaction();
+                        transaction.setUserId(1L); // demo user
+                        transaction.setDate(parts[0].trim());
+                        transaction.setDescription(parts[1].trim());
+                        transaction.setAmount(parts[2].trim());
+                        transaction.setCategory(parts.length > 3 ? parts[3].trim() : "Other");
+                        transaction.setType(parts.length > 4 ? parts[4].trim() : "expense");
+                        transaction.setPaymentMethod(parts.length > 5 ? parts[5].trim() : "Unknown");
+                        transaction.setCreatedAt(LocalDateTime.now());
+
+                        transactionRepository.save(transaction);
+                        imported++;
+                    } catch (Exception e) {
+                        // Skip invalid rows
+                    }
+                }
+                total++;
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("imported", imported);
+            response.put("total", total);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to process CSV file: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/transactions/upload-csv")
+    public ResponseEntity<?> uploadCsv(@RequestParam("csvFile") MultipartFile file) {
+        return importCsv(file);
+    }
+}

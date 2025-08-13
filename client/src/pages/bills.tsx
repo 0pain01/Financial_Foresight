@@ -1,0 +1,164 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Zap, Droplets, Wifi, Car, Phone, Shield, Tv } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import AddBillModal from "@/components/modals/add-bill-modal";
+import Sidebar from "@/components/layout/sidebar";
+import Topbar from "@/components/layout/topbar";
+
+export default function BillsPage() {
+  const [isBillModalOpen, setIsBillModalOpen] = useState(false);
+
+  const { data: bills, isLoading } = useQuery({
+    queryKey: ["/api/bills"],
+  });
+
+  const formatCurrency = (amount: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(parseFloat(amount));
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const iconMap: Record<string, any> = {
+    "electricity": Zap,
+    "water": Droplets,
+    "internet": Wifi,
+    "car": Car,
+    "phone": Phone,
+    "insurance": Shield,
+    "subscription": Tv
+  };
+
+  const colorMap: Record<string, string> = {
+    "electricity": "bg-yellow-100 text-yellow-600",
+    "water": "bg-blue-100 text-blue-600",
+    "internet": "bg-purple-100 text-purple-600",
+    "car": "bg-red-100 text-red-600",
+    "phone": "bg-green-100 text-green-600",
+    "insurance": "bg-orange-100 text-orange-600",
+    "subscription": "bg-indigo-100 text-indigo-600"
+  };
+
+  const statusColors: Record<string, string> = {
+    "paid": "bg-green-100 text-green-800",
+    "pending": "bg-yellow-100 text-yellow-800",
+    "overdue": "bg-red-100 text-red-800"
+  };
+
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        <Topbar />
+        <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Bills & Utilities</h1>
+          <p className="text-gray-600">Manage your recurring bills and subscriptions</p>
+        </div>
+
+        {/* Action Bar */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-2">
+            <Button onClick={() => setIsBillModalOpen(true)} className="bg-finance-blue hover:bg-blue-700">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Bill
+            </Button>
+          </div>
+          <div className="text-sm text-gray-500">
+            {bills ? `${bills.length} bills` : '0 bills'}
+          </div>
+        </div>
+
+        {/* Bills Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-24 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {bills && bills.length > 0 ? (
+              bills.map((bill: any) => {
+                const IconComponent = iconMap[bill.category.toLowerCase()] || Zap;
+                const iconColorClass = colorMap[bill.category.toLowerCase()] || "bg-gray-100 text-gray-600";
+                const statusColorClass = statusColors[bill.status] || "bg-gray-100 text-gray-800";
+
+                return (
+                  <Card key={bill.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`w-12 h-12 ${iconColorClass} rounded-lg flex items-center justify-center`}>
+                          <IconComponent className="h-6 w-6" />
+                        </div>
+                        <Badge className={statusColorClass}>
+                          {bill.status}
+                        </Badge>
+                      </div>
+                      
+                      <h3 className="font-semibold text-gray-900 mb-2">{bill.name}</h3>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-500">Amount</span>
+                          <span className="font-semibold text-gray-900">{formatCurrency(bill.amount)}</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-500">Due Date</span>
+                          <span className="text-sm text-gray-900">{formatDate(bill.dueDate)}</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-500">Recurring</span>
+                          <span className="text-sm text-gray-900">{bill.isRecurring ? 'Yes' : 'No'}</span>
+                        </div>
+                        
+                        {bill.isRecurring && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">Auto-pay</span>
+                            <span className="text-sm text-gray-900">{bill.autoPayEnabled ? 'Enabled' : 'Disabled'}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 mb-4">No bills found. Add your first bill to get started!</p>
+                <Button onClick={() => setIsBillModalOpen(true)} className="bg-finance-blue hover:bg-blue-700">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Bill
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+        </div>
+      </main>
+
+      {/* Modal */}
+      <AddBillModal 
+        isOpen={isBillModalOpen}
+        onClose={() => setIsBillModalOpen(false)}
+      />
+    </div>
+  );
+}
