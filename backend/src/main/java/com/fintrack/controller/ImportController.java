@@ -42,7 +42,15 @@ public class ImportController {
                     try {
                         Transaction transaction = new Transaction();
                         transaction.setUserId(1L); // demo user
-                        transaction.setDate(parts[0].trim());
+                        
+                        // Convert DD-MM-YYYY to YYYY-MM-DD format
+                        String dateStr = parts[0].trim();
+                        if (dateStr.matches("\\d{2}-\\d{2}-\\d{4}")) {
+                            String[] dateParts = dateStr.split("-");
+                            dateStr = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
+                        }
+                        transaction.setDate(dateStr);
+                        
                         transaction.setDescription(parts[1].trim());
                         transaction.setAmount(parts[2].trim());
                         transaction.setCategory(parts.length > 3 ? parts[3].trim() : "Other");

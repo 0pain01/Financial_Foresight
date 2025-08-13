@@ -5,27 +5,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, User, Bell, Shield, Palette, Database } from "lucide-react";
+import { Settings, User, Bell, Shield, Palette, Database, Save, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
 export default function SettingsPage() {
   const { isDarkMode, setDarkMode } = useTheme();
   const { currency, setCurrency } = useCurrency();
-  const [settings, setSettings] = useState({
-    notifications: true,
-    emailReports: false,
-    language: 'en',
-    autoSync: true,
-    dataRetention: '1year'
-  });
+  const { 
+    profile, 
+    notifications, 
+    appearance, 
+    updateProfile, 
+    updateNotifications, 
+    updateAppearance, 
+    saveSettings, 
+    resetSettings, 
+    isDirty 
+  } = useSettings();
 
   const { toast } = useToast();
 
   const handleSave = () => {
+    saveSettings();
     toast({
       title: "Settings saved",
       description: "Your preferences have been updated successfully"
@@ -33,13 +39,7 @@ export default function SettingsPage() {
   };
 
   const handleReset = () => {
-    setSettings({
-      notifications: true,
-      emailReports: false,
-      language: 'en',
-      autoSync: true,
-      dataRetention: '1year'
-    });
+    resetSettings();
     setDarkMode(false);
     setCurrency('INR');
     toast({
@@ -55,8 +55,30 @@ export default function SettingsPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600">Manage your account preferences and application settings</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+                <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and application settings</p>
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="outline" 
+                  onClick={handleReset}
+                  className="flex items-center"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reset
+                </Button>
+                <Button 
+                  onClick={handleSave}
+                  disabled={!isDirty}
+                  className="flex items-center bg-finance-blue hover:bg-blue-700"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -71,16 +93,27 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="John Doe" />
+                  <Input 
+                    id="name" 
+                    placeholder="John Doe" 
+                    value={profile.fullName}
+                    onChange={(e) => updateProfile({ fullName: e.target.value })}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john@example.com" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="john@example.com" 
+                    value={profile.email}
+                    onChange={(e) => updateProfile({ email: e.target.value })}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex space-x-2">
-                    <Select defaultValue="+91">
+                    <Select value={profile.phoneCode} onValueChange={(value) => updateProfile({ phoneCode: value })}>
                       <SelectTrigger className="w-24">
                         <SelectValue />
                       </SelectTrigger>
@@ -99,12 +132,18 @@ export default function SettingsPage() {
                         <SelectItem value="+65">🇸🇬 +65</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Input id="phone" placeholder="98765 43210" className="flex-1" />
+                    <Input 
+                      id="phone" 
+                      placeholder="98765 43210" 
+                      className="flex-1"
+                      value={profile.phone}
+                      onChange={(e) => updateProfile({ phone: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div>
                   <Label htmlFor="timezone">Timezone</Label>
-                  <Select>
+                  <Select value={profile.timezone} onValueChange={(value) => updateProfile({ timezone: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
@@ -143,8 +182,8 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="notifications"
-                    checked={settings.notifications}
-                    onCheckedChange={(checked) => setSettings({...settings, notifications: checked})}
+                    checked={notifications.notifications}
+                    onCheckedChange={(checked) => updateNotifications({ notifications: checked })}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -154,8 +193,8 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="email-reports"
-                    checked={settings.emailReports}
-                    onCheckedChange={(checked) => setSettings({...settings, emailReports: checked})}
+                    checked={notifications.emailReports}
+                    onCheckedChange={(checked) => updateNotifications({ emailReports: checked })}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -165,8 +204,8 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="auto-sync"
-                    checked={settings.autoSync}
-                    onCheckedChange={(checked) => setSettings({...settings, autoSync: checked})}
+                    checked={notifications.autoSync}
+                    onCheckedChange={(checked) => updateNotifications({ autoSync: checked })}
                   />
                 </div>
               </CardContent>
@@ -205,7 +244,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <Label htmlFor="language">Language</Label>
-                  <Select value={settings.language} onValueChange={(value) => setSettings({...settings, language: value})}>
+                  <Select value={appearance.language} onValueChange={(value) => updateAppearance({ language: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

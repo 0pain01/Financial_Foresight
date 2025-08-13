@@ -4,23 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import AddInvestmentModal from "@/components/modals/add-investment-modal";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
 export default function InvestmentsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { formatCurrency } = useCurrency();
 
   const { data: investments, isLoading } = useQuery({
     queryKey: ["/api/investments"],
   });
-
-  const formatCurrency = (amount: string | number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(typeof amount === 'string' ? parseFloat(amount) : amount);
-  };
 
   const calculateTotalValue = () => {
     if (!investments) return 0;
@@ -53,7 +48,7 @@ export default function InvestmentsPage() {
   const totalGainPercent = totalValue > 0 ? (totalGain / (totalValue - totalGain)) * 100 : 0;
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />

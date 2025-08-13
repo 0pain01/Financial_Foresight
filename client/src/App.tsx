@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import Dashboard from "@/pages/dashboard";
 import TransactionsPage from "@/pages/transactions";
 import BillsPage from "@/pages/bills";
@@ -38,10 +39,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <CurrencyProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <SettingsProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </SettingsProvider>
         </CurrencyProvider>
       </ThemeProvider>
     </QueryClientProvider>
