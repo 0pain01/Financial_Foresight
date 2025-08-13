@@ -285,7 +285,7 @@ export default function AnalyticsPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5" />
-                3D Spending Analysis
+                3D Spending Analysis (All Time)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -293,15 +293,39 @@ export default function AnalyticsPage() {
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" dataKey="amount" name="Amount" />
-                  <YAxis type="number" dataKey="category" name="Category" />
+                  <YAxis type="number" dataKey="categoryIndex" name="Category" />
                   <ZAxis type="number" dataKey="date" name="Date" />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                  <Scatter name="Transactions" data={transactions?.map((t: any) => ({
-                    amount: parseFloat(t.amount),
-                    category: t.category,
-                    date: new Date(t.date).getTime(),
-                    type: t.type
-                  })) || []} fill="#8884d8" />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }}
+                    formatter={(value: any, name: string, props: any) => {
+                      if (name === 'categoryIndex') {
+                        const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+                        return [categories[value] || "Unknown", "Category"];
+                      }
+                      if (name === 'date') {
+                        return [new Date(value).toLocaleDateString(), "Date"];
+                      }
+                      if (name === 'amount') {
+                        return [`$${parseFloat(value).toFixed(2)}`, "Amount"];
+                      }
+                      return [value, name];
+                    }}
+                  />
+                  <Scatter 
+                    name="Transactions" 
+                    data={transactions?.map((t: any, index: number) => {
+                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+                      const categoryIndex = categories.indexOf(t.category);
+                      return {
+                        amount: parseFloat(t.amount),
+                        categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
+                        date: new Date(t.date).getTime(),
+                        type: t.type,
+                        description: t.description
+                      };
+                    }) || []} 
+                    fill="#8884d8" 
+                  />
                 </ScatterChart>
               </ResponsiveContainer>
             </CardContent>

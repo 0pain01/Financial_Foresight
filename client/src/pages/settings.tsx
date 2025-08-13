@@ -7,16 +7,17 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, User, Bell, Shield, Palette, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/contexts/ThemeContext";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
 export default function SettingsPage() {
+  const { isDarkMode, setDarkMode } = useTheme();
   const [settings, setSettings] = useState({
     notifications: true,
     emailReports: false,
-    currency: 'USD',
+    currency: 'INR',
     language: 'en',
-    darkMode: false,
     autoSync: true,
     dataRetention: '1year'
   });
@@ -34,12 +35,12 @@ export default function SettingsPage() {
     setSettings({
       notifications: true,
       emailReports: false,
-      currency: 'USD',
+      currency: 'INR',
       language: 'en',
-      darkMode: false,
       autoSync: true,
       dataRetention: '1year'
     });
+    setDarkMode(false);
     toast({
       title: "Settings reset",
       description: "All settings have been reset to default values"
@@ -77,7 +78,28 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" placeholder="+1 (555) 123-4567" />
+                  <div className="flex space-x-2">
+                    <Select defaultValue="+91">
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                        <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                        <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                        <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                        <SelectItem value="+33">🇫🇷 +33</SelectItem>
+                        <SelectItem value="+39">🇮🇹 +39</SelectItem>
+                        <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                        <SelectItem value="+81">🇯🇵 +81</SelectItem>
+                        <SelectItem value="+86">🇨🇳 +86</SelectItem>
+                        <SelectItem value="+61">🇦🇺 +61</SelectItem>
+                        <SelectItem value="+971">🇦🇪 +971</SelectItem>
+                        <SelectItem value="+65">🇸🇬 +65</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input id="phone" placeholder="98765 43210" className="flex-1" />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="timezone">Timezone</Label>
@@ -86,10 +108,18 @@ export default function SettingsPage() {
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="EST">Eastern Time</SelectItem>
-                      <SelectItem value="PST">Pacific Time</SelectItem>
-                      <SelectItem value="CST">Central Time</SelectItem>
-                      <SelectItem value="MST">Mountain Time</SelectItem>
+                      <SelectItem value="IST">🇮🇳 IST - India Standard Time</SelectItem>
+                      <SelectItem value="EST">🇺🇸 EST - Eastern Time</SelectItem>
+                      <SelectItem value="PST">🇺🇸 PST - Pacific Time</SelectItem>
+                      <SelectItem value="CST">🇺🇸 CST - Central Time</SelectItem>
+                      <SelectItem value="MST">🇺🇸 MST - Mountain Time</SelectItem>
+                      <SelectItem value="GMT">🇬🇧 GMT - Greenwich Mean Time</SelectItem>
+                      <SelectItem value="CET">🇪🇺 CET - Central European Time</SelectItem>
+                      <SelectItem value="JST">🇯🇵 JST - Japan Standard Time</SelectItem>
+                      <SelectItem value="CST_CN">🇨🇳 CST - China Standard Time</SelectItem>
+                      <SelectItem value="AEST">🇦🇺 AEST - Australian Eastern Time</SelectItem>
+                      <SelectItem value="GST">🇦🇪 GST - Gulf Standard Time</SelectItem>
+                      <SelectItem value="SGT">🇸🇬 SGT - Singapore Time</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -157,10 +187,18 @@ export default function SettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR">EUR - Euro</SelectItem>
-                      <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                      <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                      <SelectItem value="INR">🇮🇳 INR - Indian Rupee</SelectItem>
+                      <SelectItem value="USD">🇺🇸 USD - US Dollar</SelectItem>
+                      <SelectItem value="EUR">🇪🇺 EUR - Euro</SelectItem>
+                      <SelectItem value="GBP">🇬🇧 GBP - British Pound</SelectItem>
+                      <SelectItem value="CAD">🇨🇦 CAD - Canadian Dollar</SelectItem>
+                      <SelectItem value="AUD">🇦🇺 AUD - Australian Dollar</SelectItem>
+                      <SelectItem value="JPY">🇯🇵 JPY - Japanese Yen</SelectItem>
+                      <SelectItem value="CNY">🇨🇳 CNY - Chinese Yuan</SelectItem>
+                      <SelectItem value="CHF">🇨🇭 CHF - Swiss Franc</SelectItem>
+                      <SelectItem value="SGD">🇸🇬 SGD - Singapore Dollar</SelectItem>
+                      <SelectItem value="AED">🇦🇪 AED - UAE Dirham</SelectItem>
+                      <SelectItem value="KRW">🇰🇷 KRW - South Korean Won</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -185,8 +223,8 @@ export default function SettingsPage() {
                   </div>
                   <Switch
                     id="dark-mode"
-                    checked={settings.darkMode}
-                    onCheckedChange={(checked) => setSettings({...settings, darkMode: checked})}
+                    checked={isDarkMode}
+                    onCheckedChange={setDarkMode}
                   />
                 </div>
               </CardContent>

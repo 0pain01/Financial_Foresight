@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,9 @@ const editBillSchema = z.object({
   category: z.string().min(1, "Category is required"),
   dueDate: z.string().min(1, "Due date is required"),
   status: z.string().min(1, "Status is required"),
-  paymentMethod: z.string().optional()
+  paymentMethod: z.string().optional(),
+  isRecurring: z.boolean().optional(),
+  autoPayEnabled: z.boolean().optional()
 });
 
 interface EditBillModalProps {
@@ -39,7 +42,9 @@ export default function EditBillModal({ isOpen, onClose, bill }: EditBillModalPr
       category: "",
       dueDate: new Date().toISOString().split('T')[0],
       status: "pending",
-      paymentMethod: ""
+      paymentMethod: "",
+      isRecurring: false,
+      autoPayEnabled: false
     }
   });
 
@@ -52,7 +57,9 @@ export default function EditBillModal({ isOpen, onClose, bill }: EditBillModalPr
         category: bill.category || "",
         dueDate: bill.dueDate ? new Date(bill.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         status: bill.status || "pending",
-        paymentMethod: bill.paymentMethod || ""
+        paymentMethod: bill.paymentMethod || "",
+        isRecurring: bill.isRecurring || false,
+        autoPayEnabled: bill.autoPayEnabled || false
       });
     }
   }, [bill, form]);
@@ -214,6 +221,48 @@ export default function EditBillModal({ isOpen, onClose, bill }: EditBillModalPr
                     <Input {...field} placeholder="Credit Card, Debit Card, Cash, etc." />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isRecurring"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Recurring Bill</FormLabel>
+                    <div className="text-sm text-gray-500">
+                      This bill repeats automatically
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="autoPayEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Auto-Pay Enabled</FormLabel>
+                    <div className="text-sm text-gray-500">
+                      Automatically pay this bill when due
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
