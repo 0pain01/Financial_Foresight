@@ -21,7 +21,7 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
   const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
   
   // Get actual years from data
-  const years = [...new Set(data.map(d => d.year))].sort();
+  const years = Array.from(new Set(data.map(d => d.year))).sort();
   console.log('Years in 3D chart component:', years);
   console.log('Input data:', data);
   
@@ -73,7 +73,7 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
   console.log('Plot data:', plotData);
 
   const layout = {
-    title: '2D Spending Analysis by Year (Testing)',
+    title: { text: '2D Spending Analysis by Year (Testing)' },
     xaxis: { title: 'Years' },
     yaxis: { title: 'Amount ($)' },
     width: width,
@@ -83,7 +83,7 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
   const config = {
     displayModeBar: true,
     displaylogo: false,
-    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'] as any[],
     responsive: true
   };
 

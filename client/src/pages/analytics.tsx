@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
     const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
     
     // Get actual years from transaction data
-    const actualYears = [...new Set(transactions.map((t: any) => new Date(t.date).getFullYear()))].sort();
+    const actualYears = Array.from(new Set(transactions.map((t: any) => new Date(t.date).getFullYear()))).sort();
     console.log('Actual years in data:', actualYears);
     
     // Use actual years if available, otherwise use default range
