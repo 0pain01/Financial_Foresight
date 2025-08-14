@@ -61,7 +61,7 @@ export default function RecentTransactions() {
     "Income": "bg-emerald-100 text-emerald-600",
     "Entertainment": "bg-pink-100 text-pink-600",
     "Healthcare": "bg-indigo-100 text-indigo-600",
-    "Other": "bg-gray-100 text-gray-600"
+            "Other": "bg-muted text-foreground"
   };
 
   const recentTransactions = transactions ? transactions.slice(-5).reverse() : [];
@@ -70,21 +70,21 @@ export default function RecentTransactions() {
     <Card>
       <CardHeader className="border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">Recent Transactions</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">Recent Transactions</CardTitle>
           <Link href="/transactions" className="text-finance-blue text-sm font-medium hover:text-blue-700">View All</Link>
         </div>
       </CardHeader>
       
       <CardContent className="p-0">
         {recentTransactions.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+                      <div className="p-8 text-center text-muted-foreground">
             No transactions yet. Start by adding your first transaction!
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {recentTransactions.map((transaction: any) => {
               const IconComponent = iconMap[transaction.category] || CreditCard;
-              const colorClass = colorMap[transaction.category] || "bg-gray-100 text-gray-600";
+              const colorClass = colorMap[transaction.category] || "bg-muted text-foreground";
               const amount = parseFloat(transaction.amount);
               const isIncome = transaction.type === 'income';
 
@@ -95,8 +95,8 @@ export default function RecentTransactions() {
                       <IconComponent className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{transaction.description}</h3>
-                      <p className="text-sm text-gray-500">
+                                        <h3 className="font-medium text-foreground">{transaction.description}</h3>
+                  <p className="text-sm text-muted-foreground">
                         {transaction.category} • {new Date(transaction.date).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric', 
@@ -109,7 +109,7 @@ export default function RecentTransactions() {
                     <p className={`font-semibold ${isIncome ? 'text-finance-green' : 'text-red-600'}`}>
                       {isIncome ? '+' : '-'}${amount.toFixed(2)}
                     </p>
-                    <p className="text-xs text-gray-500">{transaction.paymentMethod || 'Unknown'}</p>
+                    <p className="text-xs text-muted-foreground">{transaction.paymentMethod || 'Unknown'}</p>
                   </div>
                 </div>
               );

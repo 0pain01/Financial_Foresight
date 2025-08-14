@@ -57,8 +57,8 @@ export default function SettingsPage() {
           <div className="mb-8">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-                <p className="text-gray-600 dark:text-gray-400">Manage your account preferences and application settings</p>
+                          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+          <p className="text-muted-foreground">Manage your account preferences and application settings</p>
               </div>
               <div className="flex space-x-3">
                 <Button 
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notifications">Push Notifications</Label>
-                    <p className="text-sm text-gray-500">Receive notifications about transactions and bills</p>
+                    <p className="text-sm text-muted-foreground">Receive notifications about transactions and bills</p>
                   </div>
                   <Switch
                     id="notifications"
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="email-reports">Email Reports</Label>
-                    <p className="text-sm text-gray-500">Weekly financial summary via email</p>
+                    <p className="text-sm text-muted-foreground">Weekly financial summary via email</p>
                   </div>
                   <Switch
                     id="email-reports"
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="auto-sync">Auto Sync</Label>
-                    <p className="text-sm text-gray-500">Automatically sync data across devices</p>
+                    <p className="text-sm text-muted-foreground">Automatically sync data across devices</p>
                   </div>
                   <Switch
                     id="auto-sync"
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="dark-mode">Dark Mode</Label>
-                    <p className="text-sm text-gray-500">Switch to dark theme</p>
+                    <p className="text-sm text-muted-foreground">Switch to dark theme</p>
                   </div>
                   <Switch
                     id="dark-mode"

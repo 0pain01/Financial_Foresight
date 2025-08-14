@@ -34,13 +34,13 @@ export default function InvestmentsPage() {
   const getPerformanceColor = (gain: number) => {
     if (gain > 0) return 'text-green-600';
     if (gain < 0) return 'text-red-600';
-    return 'text-gray-600';
+          return 'text-muted-foreground';
   };
 
   const getPerformanceBadge = (gain: number) => {
     if (gain > 0) return 'bg-green-100 text-green-800';
     if (gain < 0) return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-800';
+          return 'bg-muted text-foreground';
   };
 
   const totalValue = calculateTotalValue();
@@ -54,8 +54,8 @@ export default function InvestmentsPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Investments</h1>
-            <p className="text-gray-600">Track your investment portfolio performance</p>
+            <h1 className="text-2xl font-bold text-foreground">Investments</h1>
+                          <p className="text-muted-foreground">Track your investment portfolio performance</p>
           </div>
 
           {/* Portfolio Summary */}

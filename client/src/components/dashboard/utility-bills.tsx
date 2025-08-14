@@ -16,7 +16,7 @@ export default function UtilityBills({ onAddBill }: UtilityBillsProps) {
     return (
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Utility Bills & Subscriptions</h2>
+          <h2 className="text-xl font-semibold text-foreground">Utility Bills & Subscriptions</h2>
           <Button onClick={onAddBill} className="bg-finance-blue hover:bg-blue-700">
             <Plus className="mr-2 h-4 w-4" />
             Add Bill
@@ -26,7 +26,7 @@ export default function UtilityBills({ onAddBill }: UtilityBillsProps) {
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-24 bg-gray-200 rounded"></div>
+                <div className="h-24 bg-muted rounded"></div>
               </CardContent>
             </Card>
           ))}
@@ -58,7 +58,7 @@ export default function UtilityBills({ onAddBill }: UtilityBillsProps) {
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Utility Bills & Subscriptions</h2>
+        <h2 className="text-xl font-semibold text-foreground">Utility Bills & Subscriptions</h2>
         <Button onClick={onAddBill} className="bg-finance-blue hover:bg-blue-700">
           <Plus className="mr-2 h-4 w-4" />
           Add Bill
@@ -69,8 +69,8 @@ export default function UtilityBills({ onAddBill }: UtilityBillsProps) {
         {bills && bills.length > 0 ? (
           bills.map((bill: any) => {
             const IconComponent = iconMap[bill.category.toLowerCase()] || Zap;
-            const iconColorClass = colorMap[bill.category.toLowerCase()] || "bg-gray-100 text-gray-600";
-            const statusColorClass = statusColors[bill.status] || "bg-gray-100 text-gray-800";
+            const iconColorClass = colorMap[bill.category.toLowerCase()] || "bg-muted text-muted-foreground";
+            const statusColorClass = statusColors[bill.status] || "bg-muted text-foreground";
 
             return (
               <Card key={bill.id} className="hover:shadow-md transition-shadow">
@@ -83,25 +83,25 @@ export default function UtilityBills({ onAddBill }: UtilityBillsProps) {
                       {bill.status === 'paid' ? 'Paid' : bill.status === 'pending' ? 'Pending' : 'Overdue'}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{bill.name}</h3>
-                  <p className="text-2xl font-bold text-gray-900 mb-2">${parseFloat(bill.amount).toFixed(2)}</p>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="font-semibold text-foreground mb-1">{bill.name}</h3>
+                  <p className="text-2xl font-bold text-foreground mb-2">${parseFloat(bill.amount).toFixed(2)}</p>
+                  <p className="text-sm text-muted-foreground">
                     Due: {new Date(bill.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </p>
-                  <div className="mt-4 bg-gray-100 rounded-full h-2">
+                  <div className="mt-4 bg-muted rounded-full h-2">
                     <div 
                       className="bg-yellow-500 h-2 rounded-full" 
                       style={{ width: "75%" }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">75% of monthly budget</p>
+                  <p className="text-xs text-muted-foreground mt-2">75% of monthly budget</p>
                 </CardContent>
               </Card>
             );
           })
         ) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-gray-500">No bills found. Add your first bill to get started!</p>
+            <p className="text-muted-foreground">No bills found. Add your first bill to get started!</p>
           </div>
         )}
       </div>

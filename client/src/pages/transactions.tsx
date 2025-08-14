@@ -95,7 +95,7 @@ export default function TransactionsPage() {
       "Healthcare": "bg-red-100 text-red-800",
       "Housing": "bg-yellow-100 text-yellow-800",
       "Income": "bg-emerald-100 text-emerald-800",
-      "Other": "bg-gray-100 text-gray-800"
+              "Other": "bg-muted text-foreground"
     };
     return colors[category as keyof typeof colors] || colors.Other;
   };
@@ -107,8 +107,8 @@ export default function TransactionsPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-          <p className="text-gray-600">Manage your income and expenses</p>
+          <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+          <p className="text-muted-foreground">Manage your income and expenses</p>
         </div>
 
         {/* Action Bar */}
@@ -125,7 +125,7 @@ export default function TransactionsPage() {
           </div>
           <div className="flex gap-2 ml-auto">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search transactions..."
                 value={searchTerm}
@@ -187,14 +187,14 @@ export default function TransactionsPage() {
                         {transaction.type === 'income' ? '+' : '-'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{transaction.description}</h3>
+                        <h3 className="font-medium text-foreground truncate">{transaction.description}</h3>
                         <div className="flex items-center space-x-2 mt-1">
                           <Badge variant="secondary" className={getCategoryColor(transaction.category)}>
                             {transaction.category}
                           </Badge>
-                          <span className="text-sm text-gray-500">{formatDate(transaction.date)}</span>
+                          <span className="text-sm text-muted-foreground">{formatDate(transaction.date)}</span>
                           {transaction.paymentMethod && (
-                            <span className="text-sm text-gray-500">• {transaction.paymentMethod}</span>
+                            <span className="text-sm text-muted-foreground">• {transaction.paymentMethod}</span>
                           )}
                         </div>
                       </div>
@@ -227,7 +227,7 @@ export default function TransactionsPage() {
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       {transactions && transactions.length > 0 
                         ? "No transactions match your search criteria." 
                         : "No transactions found. Add your first transaction to get started!"

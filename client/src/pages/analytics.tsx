@@ -138,8 +138,8 @@ export default function AnalyticsPage() {
           <div className="mb-8">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-                <p className="text-gray-600">Deep insights into your financial patterns</p>
+                          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+          <p className="text-muted-foreground">Deep insights into your financial patterns</p>
               </div>
               <div className="flex items-center space-x-2">
                 <Label htmlFor="duration">Duration:</Label>
@@ -166,8 +166,8 @@ export default function AnalyticsPage() {
                     <DollarSign className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Balance</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                                    <p className="text-sm font-medium text-muted-foreground">Total Balance</p>
+                <p className="text-2xl font-bold text-foreground">
                       {formatCurrency(dashboardData?.totalBalance || 0)}
                     </p>
                   </div>
@@ -182,8 +182,8 @@ export default function AnalyticsPage() {
                     <TrendingUp className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Monthly Income</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                                    <p className="text-sm font-medium text-muted-foreground">Monthly Income</p>
+                <p className="text-2xl font-bold text-foreground">
                       {formatCurrency(dashboardData?.monthlyIncome || 0)}
                     </p>
                   </div>
@@ -198,8 +198,8 @@ export default function AnalyticsPage() {
                     <TrendingDown className="h-5 w-5 text-red-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                                    <p className="text-sm font-medium text-muted-foreground">Monthly Expenses</p>
+                <p className="text-2xl font-bold text-foreground">
                       {formatCurrency(dashboardData?.monthlyExpenses || 0)}
                     </p>
                   </div>
@@ -214,8 +214,8 @@ export default function AnalyticsPage() {
                     <Target className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Savings Rate</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                                    <p className="text-sm font-medium text-muted-foreground">Savings Rate</p>
+                <p className="text-2xl font-bold text-foreground">
                       {dashboardData ? 
                         Math.round(((dashboardData.monthlyIncome - dashboardData.monthlyExpenses) / dashboardData.monthlyIncome) * 100) : 0}%
                     </p>
