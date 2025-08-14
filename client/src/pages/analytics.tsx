@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart as RechartsPieChart, Cell, Pie, ScatterChart, Scatter, ZAxis } from 'recharts';
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
+import ThreeDBarChart from "@/components/charts/3d-bar-chart";
 
 export default function AnalyticsPage() {
   const [duration, setDuration] = useState("6months");
@@ -130,6 +131,37 @@ export default function AnalyticsPage() {
   const budgetProgress = calculateBudgetProgress();
 
   const pieColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+
+  // Prepare 3D chart data
+  const prepare3DChartData = () => {
+    if (!transactions || !Array.isArray(transactions)) return [];
+    
+    const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+    const years = [2021, 2022, 2023, 2024];
+    
+    const data = [];
+    
+    for (const category of categories) {
+      for (const year of years) {
+        const yearTransactions = transactions.filter((t: any) => {
+          const transactionYear = new Date(t.date).getFullYear();
+          return t.category === category && transactionYear === year && t.type === 'expense';
+        });
+        
+        const totalAmount = yearTransactions.reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+        
+        data.push({
+          category,
+          year,
+          amount: totalAmount
+        });
+      }
+    }
+    
+    return data;
+  };
+
+  const threeDChartData = prepare3DChartData();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -289,143 +321,26 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Spending Analysis by Category and Date */}
+          {/* 3D Spending Analysis by Category and Year */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5" />
-                Spending Analysis by Category and Date
+                3D Spending Analysis by Category and Year
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ScatterChart>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    type="number" 
-                    dataKey="amount" 
-                    name="Amount" 
-                    tickFormatter={(value) => formatCurrency(value)}
-                  />
-                  <YAxis 
-                    type="category" 
-                    dataKey="category" 
-                    name="Category"
-                  />
-                  <Tooltip 
-                    cursor={{ strokeDasharray: '3 3' }}
-                    formatter={(value: any, name: string, props: any) => {
-                      if (name === 'category') {
-                        return [value, "Category"];
-                      }
-                      if (name === 'date') {
-                        return [new Date(value).toLocaleDateString(), "Date"];
-                      }
-                      if (name === 'amount') {
-                        return [formatCurrency(parseFloat(value)), "Amount"];
-                      }
-                      return [value, name];
-                    }}
-                    labelFormatter={(value: any, payload: any) => {
-                      if (payload && payload.length > 0) {
-                        const data = payload[0].payload;
-                        return `${data.description || 'Transaction'} (${data.type})`;
-                      }
-                      return '';
-                    }}
-                    contentStyle={{
-                      backgroundColor: 'var(--background)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '8px',
-                      color: 'var(--foreground)'
-                    }}
-                  />
-                  <Scatter 
-                    name="Expenses" 
-                    data={transactions && Array.isArray(transactions) ? transactions.filter((t: any) => t.type === 'expense').map((t: any, index: number) => {
-                      const dataPoint = {
-                        amount: parseFloat(t.amount),
-                        category: t.category || "Other",
-                        date: new Date(t.date).getTime(),
-                        type: t.type,
-                        description: t.description
-                      };
-                      console.log('Expense data point:', dataPoint);
-                      return dataPoint;
-                    }) : []} 
-                    fill="#ef4444" 
-                  />
-                  <Scatter 
-                    name="Income" 
-                    data={transactions && Array.isArray(transactions) ? transactions.filter((t: any) => t.type === 'income').map((t: any, index: number) => {
-                      return {
-                        amount: parseFloat(t.amount),
-                        category: t.category || "Other",
-                        date: new Date(t.date).getTime(),
-                        type: t.type,
-                        description: t.description
-                      };
-                    }) : []} 
-                    fill="#10b981" 
-                  />
-                </ScatterChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Spending Over Time */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingDown className="mr-2 h-5 w-5" />
-                Spending Over Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={spendingTrends}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="month" 
-                    tickFormatter={(value) => {
-                      const [year, month] = value.split('-');
-                      return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                    }}
-                  />
-                  <YAxis 
-                    tickFormatter={(value) => formatCurrency(value)}
-                  />
-                  <Tooltip 
-                    formatter={(value: any, name: string) => {
-                      return [formatCurrency(value), name === 'income' ? 'Income' : 'Expenses'];
-                    }}
-                    labelFormatter={(value) => {
-                      const [year, month] = value.split('-');
-                      return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                    }}
-                    contentStyle={{
-                      backgroundColor: 'var(--background)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '8px',
-                      color: 'var(--foreground)'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="income" 
-                    stroke="#10b981" 
-                    strokeWidth={2}
-                    name="Income"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="expenses" 
-                    stroke="#ef4444" 
-                    strokeWidth={2}
-                    name="Expenses"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="flex justify-center">
+                <ThreeDBarChart 
+                  data={threeDChartData} 
+                  width={800} 
+                  height={500} 
+                />
+              </div>
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                <p>X-axis: Spending Categories | Y-axis: Years | Z-axis: Amount (Height)</p>
+                <p>Use mouse to rotate, scroll to zoom, and drag to pan</p>
+              </div>
             </CardContent>
           </Card>
 
