@@ -20,6 +20,7 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
   // Get actual years from data
   const years = [...new Set(data.map(d => d.year))].sort();
   console.log('Years in 3D chart component:', years);
+  console.log('Input data:', data);
   
   // Create 2D matrix for surface plot
   const zMatrix: number[][] = [];
@@ -32,6 +33,9 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
     });
     zMatrix.push(row);
   });
+  
+  console.log('Z Matrix:', zMatrix);
+  console.log('Flat Z values:', zMatrix.flat());
 
   // Find min and max values for proper scaling
   const allValues = zMatrix.flat();
@@ -40,33 +44,36 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
 
   const plotData = [
     {
-      type: 'surface' as const,
-      x: years,
-      y: categories,
-      z: zMatrix,
-      colorscale: [
-        [0, '#10b981'],    // Green for low values
-        [0.5, '#f59e0b'],  // Orange for medium values
-        [1, '#ef4444']     // Red for high values
-      ],
-      showscale: true,
-      colorbar: {
-        title: 'Amount ($)',
-        titleside: 'right',
-        tickformat: ',.0f',
-        titlefont: { color: 'var(--foreground)' },
-        tickfont: { color: 'var(--foreground)' },
-        tickmode: 'auto',
-        nticks: 10
+      type: 'scatter3d' as const,
+      x: years.flatMap(year => Array(categories.length).fill(year)),
+      y: categories.flatMap(category => Array(years.length).fill(category)),
+      z: zMatrix.flat(),
+      mode: 'markers' as const,
+      marker: {
+        size: zMatrix.flat().map(val => Math.max(8, val / 100)),
+        color: zMatrix.flat().map(val => {
+          if (val > 5000) return '#ef4444'; // Red for high spending
+          if (val > 2000) return '#f59e0b'; // Orange for medium spending
+          return '#10b981'; // Green for low spending
+        }),
+        opacity: 0.8,
+        colorscale: [
+          [0, '#10b981'],    // Green for low values
+          [0.5, '#f59e0b'],  // Orange for medium values
+          [1, '#ef4444']     // Red for high values
+        ]
       },
+      text: zMatrix.flat().map((val, i) => {
+        const categoryIndex = Math.floor(i / years.length);
+        const yearIndex = i % years.length;
+        return `${categories[categoryIndex]} - ${years[yearIndex]}: $${val.toLocaleString()}`;
+      }),
       hovertemplate: 
-        '<b>%{y}</b><br>' +
+        '<b>%{text}</b><br>' +
+        'Category: %{y}<br>' +
         'Year: %{x}<br>' +
         'Amount: $%{z:,.0f}<br>' +
-        '<extra></extra>',
-      hoverongaps: false,
-      zmin: minValue,
-      zmax: maxValue
+        '<extra></extra>'
     }
   ];
 
@@ -83,8 +90,7 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         gridcolor: 'var(--border)',
         tickmode: 'array',
         tickvals: years,
-        ticktext: years.map(y => y.toString()),
-        type: 'category'
+        ticktext: years.map(y => y.toString())
       },
       yaxis: {
         title: 'Categories',
@@ -92,9 +98,8 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         tickfont: { color: 'var(--foreground)' },
         gridcolor: 'var(--border)',
         tickmode: 'array',
-        tickvals: categories.map((_, i) => i),
-        ticktext: categories,
-        tickangle: 0
+        tickvals: categories,
+        ticktext: categories
       },
       zaxis: {
         title: 'Amount ($)',
@@ -117,7 +122,7 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
     },
     margin: {
       l: 50,
-      r: 100, // Extra space for colorbar
+      r: 50,
       b: 50,
       t: 50,
       pad: 4
