@@ -99,8 +99,8 @@ export default function BillsPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Bills & Utilities</h1>
-          <p className="text-gray-600">Manage your recurring bills and subscriptions</p>
+          <h1 className="text-2xl font-bold text-foreground">Bills & Utilities</h1>
+          <p className="text-muted-foreground">Manage your recurring bills and subscriptions</p>
         </div>
 
         {/* Action Bar */}
@@ -111,7 +111,7 @@ export default function BillsPage() {
               Add Bill
             </Button>
           </div>
-          <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
             {bills ? `${bills.length} bills` : '0 bills'}
           </div>
         </div>
@@ -132,8 +132,8 @@ export default function BillsPage() {
             {bills && bills.length > 0 ? (
               bills.map((bill: any) => {
                 const IconComponent = iconMap[bill.category.toLowerCase()] || Zap;
-                const iconColorClass = colorMap[bill.category.toLowerCase()] || "bg-gray-100 text-gray-600";
-                const statusColorClass = statusColors[bill.status] || "bg-gray-100 text-gray-800";
+                        const iconColorClass = colorMap[bill.category.toLowerCase()] || "bg-muted text-muted-foreground";
+        const statusColorClass = statusColors[bill.status] || "bg-muted text-foreground";
 
                 return (
                   <Card key={bill.id} className="hover:shadow-md transition-shadow">
@@ -167,28 +167,28 @@ export default function BillsPage() {
                         </div>
                       </div>
                       
-                      <h3 className="font-semibold text-gray-900 mb-2">{bill.name}</h3>
+                      <h3 className="font-semibold text-foreground mb-2">{bill.name}</h3>
                       
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">Amount</span>
-                          <span className="font-semibold text-gray-900">{formatCurrency(bill.amount)}</span>
+                                                      <span className="text-sm text-muted-foreground">Amount</span>
+                            <span className="font-semibold text-foreground">{formatCurrency(bill.amount)}</span>
                         </div>
                         
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">Due Date</span>
-                          <span className="text-sm text-gray-900">{formatDate(bill.dueDate)}</span>
+                                                      <span className="text-sm text-muted-foreground">Due Date</span>
+                            <span className="text-sm text-foreground">{formatDate(bill.dueDate)}</span>
                         </div>
                         
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">Recurring</span>
-                          <span className="text-sm text-gray-900">{bill.isRecurring ? 'Yes' : 'No'}</span>
+                                                      <span className="text-sm text-muted-foreground">Recurring</span>
+                            <span className="text-sm text-foreground">{bill.isRecurring ? 'Yes' : 'No'}</span>
                         </div>
                         
                         {bill.isRecurring && (
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-500">Auto-pay</span>
-                            <span className="text-sm text-gray-900">{bill.autoPayEnabled ? 'Enabled' : 'Disabled'}</span>
+                            <span className="text-sm text-muted-foreground">Auto-pay</span>
+                            <span className="text-sm text-foreground">{bill.autoPayEnabled ? 'Enabled' : 'Disabled'}</span>
                           </div>
                         )}
                       </div>
@@ -198,7 +198,7 @@ export default function BillsPage() {
               })
             ) : (
               <div className="col-span-full text-center py-12">
-                <p className="text-gray-500 mb-4">No bills found. Add your first bill to get started!</p>
+                <p className="text-muted-foreground mb-4">No bills found. Add your first bill to get started!</p>
                 <Button onClick={() => setIsBillModalOpen(true)} className="bg-finance-blue hover:bg-blue-700">
                   <Plus className="mr-2 h-4 w-4" />
                   Add Bill

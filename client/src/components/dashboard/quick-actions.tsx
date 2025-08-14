@@ -38,7 +38,7 @@ export default function QuickActions({ onAddTransaction, onUploadCSV, onSetBudge
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
+        <CardTitle className="text-lg font-semibold text-foreground">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -52,8 +52,8 @@ export default function QuickActions({ onAddTransaction, onUploadCSV, onSetBudge
                 <action.icon className={`${action.iconColor} h-5 w-5`} />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">{action.title}</h3>
-                <p className="text-sm text-gray-500">{action.description}</p>
+                <h3 className="font-medium text-foreground">{action.title}</h3>
+                <p className="text-sm text-muted-foreground">{action.description}</p>
               </div>
             </button>
           ))}

@@ -93,8 +93,8 @@ export default function ImportDataPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Import Data</h1>
-            <p className="text-gray-600">Import transactions from CSV files or connect to your bank</p>
+                      <h1 className="text-2xl font-bold text-foreground">Import Data</h1>
+          <p className="text-muted-foreground">Import transactions from CSV files or connect to your bank</p>
           </div>
 
           {/* CSV Upload */}
@@ -111,8 +111,8 @@ export default function ImportDataPage() {
                   <Label htmlFor="file-upload">Select CSV File</Label>
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                     <div className="space-y-1 text-center">
-                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
+                                      <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+                <div className="flex text-sm text-muted-foreground">
                         <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-finance-blue hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-finance-blue">
                           <span>Upload a file</span>
                           <Input
@@ -125,7 +125,7 @@ export default function ImportDataPage() {
                         </label>
                         <p className="pl-1">or drag and drop</p>
                       </div>
-                      <p className="text-xs text-gray-500">CSV files only</p>
+                                              <p className="text-xs text-muted-foreground">CSV files only</p>
                     </div>
                   </div>
                 </div>
@@ -185,41 +185,41 @@ export default function ImportDataPage() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Column</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Format</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Example</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Column</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Format</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Example</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">date</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">YYYY-MM-DD</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-15</td>
+                                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">date</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">YYYY-MM-DD</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">2024-01-15</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">description</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Text</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Grocery Store</td>
+                                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">description</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Text</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Grocery Store</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">amount</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Number (negative for expenses)</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-85.50</td>
+                                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">amount</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Number (negative for expenses)</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">-85.50</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">category</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Text</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Food & Dining</td>
+                                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">category</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Text</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Food & Dining</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">type</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">income or expense</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">expense</td>
+                                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">type</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">income or expense</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">expense</td>
                       </tr>
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">paymentMethod</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Text</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Credit Card</td>
+                                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">paymentMethod</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Text</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Credit Card</td>
                       </tr>
                     </tbody>
                   </table>
@@ -236,10 +236,10 @@ export default function ImportDataPage() {
             <CardContent>
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="h-8 w-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Coming Soon</h3>
-                <p className="text-gray-600 mb-4">
+                                  <CheckCircle className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium text-foreground mb-2">Coming Soon</h3>
+              <p className="text-muted-foreground mb-4">
                   Connect directly to your bank account for automatic transaction imports
                 </p>
                 <Button variant="outline" disabled>

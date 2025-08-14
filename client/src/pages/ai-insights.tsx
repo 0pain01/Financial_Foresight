@@ -38,7 +38,7 @@ export default function AIInsightsPage() {
       case 'goal': return 'bg-green-100 text-green-800';
       case 'tip': return 'bg-yellow-100 text-yellow-800';
       case 'recommendation': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+              default: return 'bg-muted text-foreground';
     }
   };
 
@@ -60,8 +60,8 @@ export default function AIInsightsPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">AI Insights</h1>
-            <p className="text-gray-600">Intelligent analysis of your financial patterns</p>
+                      <h1 className="text-2xl font-bold text-foreground">AI Insights</h1>
+          <p className="text-muted-foreground">Intelligent analysis of your financial patterns</p>
           </div>
 
           {/* Financial Health Summary */}
@@ -128,7 +128,7 @@ export default function AIInsightsPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-900">{insight.title}</h3>
+                            <h3 className="font-semibold text-foreground">{insight.title}</h3>
                             <div className="flex items-center space-x-2">
                               <div className={`w-2 h-2 rounded-full ${getPriorityColor(insight.priority)}`}></div>
                               <Badge variant="secondary" className="text-xs">
@@ -136,8 +136,8 @@ export default function AIInsightsPage() {
                               </Badge>
                             </div>
                           </div>
-                          <p className="text-gray-600 mb-3">{insight.message}</p>
-                          <div className="flex items-center text-sm text-gray-500">
+                                          <p className="text-muted-foreground mb-3">{insight.message}</p>
+                <div className="flex items-center text-sm text-muted-foreground">
                             <span className="mr-4">Category: {insight.type}</span>
                             <span>{insight.icon}</span>
                           </div>
@@ -147,8 +147,8 @@ export default function AIInsightsPage() {
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No insights available yet. Add more transactions to generate personalized insights!</p>
+                                    <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No insights available yet. Add more transactions to generate personalized insights!</p>
                   </div>
                 )}
               </div>
@@ -172,13 +172,13 @@ export default function AIInsightsPage() {
                         <TrendingUp className="h-4 w-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-gray-700">{recommendation}</p>
+                        <p className="text-foreground">{recommendation}</p>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">Build your income and savings profile to receive personalized investment recommendations.</p>
+                    <p className="text-muted-foreground">Build your income and savings profile to receive personalized investment recommendations.</p>
                   </div>
                 )}
               </div>

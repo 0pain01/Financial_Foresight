@@ -21,15 +21,15 @@ export default function Dashboard() {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex bg-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back, John!</h1>
-            <p className="text-gray-600">Here's your financial overview for this month.</p>
+            <h1 className="text-2xl font-bold text-foreground">Welcome back, John!</h1>
+            <p className="text-muted-foreground">Here's your financial overview for this month.</p>
           </div>
 
           {/* Overview Cards */}

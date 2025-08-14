@@ -13,7 +13,7 @@ export default function OverviewCards() {
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
-              <div className="h-20 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-muted rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -74,8 +74,8 @@ export default function OverviewCards() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+                <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+                <p className="text-3xl font-bold text-foreground">{card.value}</p>
                 <p className={`text-sm mt-1 ${card.changeColor}`}>
                   {card.change}
                 </p>

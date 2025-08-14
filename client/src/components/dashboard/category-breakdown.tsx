@@ -46,22 +46,22 @@ export default function CategoryBreakdown() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Category Breakdown</CardTitle>
+        <CardTitle className="text-lg font-semibold text-foreground">Category Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {categories.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No expense data available</p>
+            <p className="text-muted-foreground text-center py-8">No expense data available</p>
           ) : (
             categories.map((category, index) => (
               <div key={category.name} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className={`w-3 h-3 ${colors[index % colors.length]} rounded-full`}></div>
-                  <span className="text-sm text-gray-700">{category.name}</span>
+                  <span className="text-sm text-foreground">{category.name}</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">${category.amount.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">{category.percentage.toFixed(1)}%</p>
+                  <p className="text-sm font-medium text-foreground">${category.amount.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}%</p>
                 </div>
               </div>
             ))

@@ -101,7 +101,7 @@ export default function SpendingChart() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900">Spending Overview</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">Spending Overview</CardTitle>
           <Select value={duration} onValueChange={setDuration}>
             <SelectTrigger className="w-40">
               <SelectValue />

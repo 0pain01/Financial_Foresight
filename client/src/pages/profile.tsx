@@ -43,8 +43,8 @@ export default function ProfilePage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-            <p className="text-gray-600">Manage your account information and preferences</p>
+                      <h1 className="text-2xl font-bold text-foreground">Profile</h1>
+          <p className="text-muted-foreground">Manage your account information and preferences</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -75,7 +75,7 @@ export default function ProfilePage() {
                     </Avatar>
                     <div>
                       <h2 className="text-xl font-semibold">{profile.name}</h2>
-                      <p className="text-gray-600">{profile.email}</p>
+                      <p className="text-muted-foreground">{profile.email}</p>
                       <Badge variant="secondary" className="mt-1">
                         Premium Member
                       </Badge>
@@ -92,7 +92,7 @@ export default function ProfilePage() {
                           onChange={(e) => setProfile({...profile, name: e.target.value})}
                         />
                       ) : (
-                        <p className="text-gray-900 font-medium">{profile.name}</p>
+                        <p className="text-foreground font-medium">{profile.name}</p>
                       )}
                     </div>
 
@@ -106,7 +106,7 @@ export default function ProfilePage() {
                           onChange={(e) => setProfile({...profile, email: e.target.value})}
                         />
                       ) : (
-                        <p className="text-gray-900 font-medium">{profile.email}</p>
+                        <p className="text-foreground font-medium">{profile.email}</p>
                       )}
                     </div>
 
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                           onChange={(e) => setProfile({...profile, phone: e.target.value})}
                         />
                       ) : (
-                        <p className="text-gray-900 font-medium">{profile.phone}</p>
+                        <p className="text-foreground font-medium">{profile.phone}</p>
                       )}
                     </div>
 
@@ -132,7 +132,7 @@ export default function ProfilePage() {
                           onChange={(e) => setProfile({...profile, location: e.target.value})}
                         />
                       ) : (
-                        <p className="text-gray-900 font-medium">{profile.location}</p>
+                        <p className="text-foreground font-medium">{profile.location}</p>
                       )}
                     </div>
                   </div>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
                         onChange={(e) => setProfile({...profile, bio: e.target.value})}
                       />
                     ) : (
-                      <p className="text-gray-900">{profile.bio}</p>
+                      <p className="text-foreground">{profile.bio}</p>
                     )}
                   </div>
 
@@ -175,22 +175,22 @@ export default function ProfilePage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Member since</span>
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Member since</span>
                       </div>
                       <span className="text-sm font-medium">{profile.joinDate}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Account type</span>
+                                        <User className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Account type</span>
                       </div>
                       <Badge variant="secondary">Premium</Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Location</span>
+                                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Location</span>
                       </div>
                       <span className="text-sm font-medium">{profile.location}</span>
                     </div>
