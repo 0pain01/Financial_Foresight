@@ -5,7 +5,9 @@ import com.fintrack.repository.InvestmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -45,8 +47,14 @@ public class InvestmentController {
     }
 
     @DeleteMapping("/investments/{id}")
-    public ResponseEntity<?> deleteInvestment(@PathVariable Long id) {
-        investmentRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, String>> deleteInvestment(@PathVariable Long id) {
+        if (investmentRepository.existsById(id)) {
+            investmentRepository.deleteById(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Investment deleted successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

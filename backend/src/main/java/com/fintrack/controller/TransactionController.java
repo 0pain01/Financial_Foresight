@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -48,13 +50,15 @@ public class TransactionController {
     }
 
     @DeleteMapping("/transactions/{id}")
-    public ResponseEntity<?> deleteTransaction(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteTransaction(@PathVariable Long id) {
         System.out.println("Received transaction delete request for ID: " + id);
         if (!transactionRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         transactionRepository.deleteById(id);
         System.out.println("Transaction deleted successfully: " + id);
-        return ResponseEntity.ok().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Transaction deleted successfully");
+        return ResponseEntity.ok(response);
     }
 }

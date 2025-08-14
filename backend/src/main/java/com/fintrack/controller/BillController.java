@@ -5,7 +5,9 @@ import com.fintrack.repository.BillRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -58,8 +60,14 @@ public class BillController {
     }
 
     @DeleteMapping("/bills/{id}")
-    public ResponseEntity<?> deleteBill(@PathVariable Long id) {
-        billRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, String>> deleteBill(@PathVariable Long id) {
+        if (billRepository.existsById(id)) {
+            billRepository.deleteById(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Bill deleted successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

@@ -69,7 +69,12 @@ export default function InvestmentsPage() {
       if (!response.ok) {
         throw new Error('Failed to delete investment');
       }
-      return response.json();
+      // Handle both empty response and JSON response
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return response.json();
+      }
+      return { message: 'Investment deleted successfully' };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/investments"] });
