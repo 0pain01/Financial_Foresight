@@ -30,6 +30,11 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
     zMatrix.push(row);
   });
 
+  // Find min and max values for proper scaling
+  const allValues = zMatrix.flat();
+  const maxValue = Math.max(...allValues);
+  const minValue = Math.min(...allValues);
+
   const plotData = [
     {
       type: 'surface' as const,
@@ -47,14 +52,18 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         titleside: 'right',
         tickformat: ',.0f',
         titlefont: { color: 'var(--foreground)' },
-        tickfont: { color: 'var(--foreground)' }
+        tickfont: { color: 'var(--foreground)' },
+        tickmode: 'auto',
+        nticks: 10
       },
       hovertemplate: 
         '<b>%{y}</b><br>' +
         'Year: %{x}<br>' +
         'Amount: $%{z:,.0f}<br>' +
         '<extra></extra>',
-      hoverongaps: false
+      hoverongaps: false,
+      zmin: minValue,
+      zmax: maxValue
     }
   ];
 
@@ -80,7 +89,8 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         gridcolor: 'var(--border)',
         tickmode: 'array',
         tickvals: categories.map((_, i) => i),
-        ticktext: categories
+        ticktext: categories,
+        tickangle: 0
       },
       zaxis: {
         title: 'Amount ($)',
