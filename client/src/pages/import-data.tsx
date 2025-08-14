@@ -20,7 +20,21 @@ export default function ImportDataPage() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      return apiRequest("POST", "/api/import/csv", formData);
+      
+      console.log("Uploading CSV file:", file.name);
+      
+      const response = await fetch("/api/import/csv", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`${response.status}: ${text}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -62,7 +76,7 @@ export default function ImportDataPage() {
   };
 
   const downloadTemplate = () => {
-    const csvContent = "date,description,amount,category,type,paymentMethod\n2024-01-15,Grocery Store,-85.50,Food & Dining,expense,Credit Card\n2024-01-16,Salary,3000.00,Income,income,Direct Deposit\n2024-01-17,Gas Station,-45.00,Transportation,expense,Credit Card";
+    const csvContent = "date,description,amount,category,type,paymentMethod\n15-01-2024,Grocery Store,-85.50,Food & Dining,expense,Credit Card\n16-01-2024,Salary,3000.00,Income,income,Direct Deposit\n17-01-2024,Gas Station,-45.00,Transportation,expense,Credit Card";
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -73,7 +87,7 @@ export default function ImportDataPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />

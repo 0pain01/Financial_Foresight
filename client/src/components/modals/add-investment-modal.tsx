@@ -42,9 +42,13 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
 
   const addInvestmentMutation = useMutation({
     mutationFn: async (data: z.infer<typeof investmentSchema>) => {
-      return apiRequest("POST", "/api/investments", data);
+      console.log("Submitting investment data:", data);
+      const response = await apiRequest("POST", "/api/investments", data);
+      console.log("Investment submission response:", response);
+      return response;
     },
     onSuccess: () => {
+      console.log("Investment added successfully");
       queryClient.invalidateQueries({ queryKey: ["/api/investments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       toast({
@@ -54,10 +58,11 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       reset();
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Failed to add investment:", error);
       toast({
         title: "Error",
-        description: "Failed to add investment",
+        description: `Failed to add investment: ${error.message}`,
         variant: "destructive"
       });
     }

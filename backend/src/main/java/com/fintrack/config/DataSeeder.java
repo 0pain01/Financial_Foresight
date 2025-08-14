@@ -19,13 +19,23 @@ public class DataSeeder {
                                    InvestmentRepository investmentRepository,
                                    BudgetRepository budgetRepository) {
         return args -> {
-            // Create demo user
-            Users user = new Users();
-            user.setUsername("demo");
-            user.setPassword("demo");
-            user = usersRepository.save(user);
+            // Check if demo user already exists
+            Users user = usersRepository.findByUsername("demo").orElse(null);
+            if (user == null) {
+                // Create demo user only if it doesn't exist
+                user = new Users();
+                user.setUsername("demo");
+                user.setPassword("demo");
+                user = usersRepository.save(user);
+            }
 
             Long userId = user.getId();
+
+            // Check if data already exists to prevent duplicates
+            if (transactionRepository.count() > 0) {
+                System.out.println("Database already contains data, skipping seeding.");
+                return;
+            }
 
             // Sample transactions
             String[] transactions = {

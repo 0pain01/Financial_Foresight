@@ -49,9 +49,13 @@ export default function AddBillModal({ isOpen, onClose }: AddBillModalProps) {
 
   const addBillMutation = useMutation({
     mutationFn: async (data: z.infer<typeof billSchema>) => {
-      return apiRequest("POST", "/api/bills", data);
+      console.log("Submitting bill data:", data);
+      const response = await apiRequest("POST", "/api/bills", data);
+      console.log("Bill submission response:", response);
+      return response;
     },
     onSuccess: () => {
+      console.log("Bill added successfully");
       queryClient.invalidateQueries({ queryKey: ["/api/bills"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       toast({
@@ -61,10 +65,11 @@ export default function AddBillModal({ isOpen, onClose }: AddBillModalProps) {
       reset();
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Failed to add bill:", error);
       toast({
         title: "Error",
-        description: "Failed to add bill",
+        description: `Failed to add bill: ${error.message}`,
         variant: "destructive"
       });
     }

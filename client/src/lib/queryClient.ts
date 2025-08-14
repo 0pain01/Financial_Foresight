@@ -12,6 +12,8 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  console.log(`Making ${method} request to ${url}`, data);
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -19,7 +21,14 @@ export async function apiRequest(
     credentials: "include",
   });
 
-  await throwIfResNotOk(res);
+  console.log(`Response status: ${res.status} for ${url}`);
+  
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`API Error ${res.status}: ${text}`);
+    throw new Error(`${res.status}: ${text}`);
+  }
+  
   return res;
 }
 
@@ -29,15 +38,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = queryKey.join("/") as string;
+    console.log(`Making GET request to ${url}`);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
+
+    console.log(`Response status: ${res.status} for ${url}`);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
     }
 
-    await throwIfResNotOk(res);
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`Query Error ${res.status}: ${text}`);
+      throw new Error(`${res.status}: ${text}`);
+    }
+    
     return await res.json();
   };
 

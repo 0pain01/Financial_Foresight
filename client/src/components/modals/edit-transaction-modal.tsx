@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-const insertTransactionSchema = z.object({
+const editTransactionSchema = z.object({
   amount: z.string(),
   description: z.string(),
   category: z.string(),
@@ -20,16 +21,17 @@ const insertTransactionSchema = z.object({
   paymentMethod: z.string().optional()
 });
 
-interface AddTransactionModalProps {
+interface EditTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  transaction: any;
 }
 
-const formSchema = insertTransactionSchema.extend({
+const formSchema = editTransactionSchema.extend({
   amount: z.string().min(1, "Amount is required").refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Amount must be a positive number")
 });
 
-export default function AddTransactionModal({ isOpen, onClose }: AddTransactionModalProps) {
+export default function EditTransactionModal({ isOpen, onClose, transaction }: EditTransactionModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,36 +47,44 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
     }
   });
 
-  const addTransactionMutation = useMutation({
+  // Update form values when transaction prop changes
+  React.useEffect(() => {
+    if (transaction) {
+      form.reset({
+        amount: transaction.amount || "",
+        description: transaction.description || "",
+        category: transaction.category || "",
+        type: transaction.type || "expense",
+        date: transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        paymentMethod: transaction.paymentMethod || ""
+      });
+    }
+  }, [transaction, form]);
+
+  const editTransactionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      console.log("Submitting transaction data:", data);
-      const response = await apiRequest("POST", "/api/transactions", data);
-      console.log("Transaction submission response:", response);
-      return response;
+      return apiRequest("PUT", `/api/transactions/${transaction.id}`, data);
     },
     onSuccess: () => {
-      console.log("Transaction added successfully");
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       toast({
         title: "Success",
-        description: "Transaction added successfully"
+        description: "Transaction updated successfully"
       });
-      form.reset();
       onClose();
     },
     onError: (error) => {
-      console.error("Failed to add transaction:", error);
       toast({
         title: "Error",
-        description: `Failed to add transaction: ${error.message}`,
+        description: `Failed to update transaction: ${error.message}`,
         variant: "destructive"
       });
     }
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    addTransactionMutation.mutate(data);
+    editTransactionMutation.mutate(data);
   };
 
   const categories = [
@@ -93,7 +103,7 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">Add Transaction</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900">Edit Transaction</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -217,9 +227,9 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
               <Button 
                 type="submit" 
                 className="flex-1 bg-finance-blue hover:bg-blue-700" 
-                disabled={addTransactionMutation.isPending}
+                disabled={editTransactionMutation.isPending}
               >
-                {addTransactionMutation.isPending ? "Adding..." : "Add Transaction"}
+                {editTransactionMutation.isPending ? "Updating..." : "Update Transaction"}
               </Button>
             </div>
           </form>

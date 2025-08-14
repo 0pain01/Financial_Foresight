@@ -2,25 +2,61 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Zap, Droplets, Wifi, Car, Phone, Shield, Tv } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Plus, Zap, Droplets, Wifi, Car, Phone, Shield, Tv, Edit, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AddBillModal from "@/components/modals/add-bill-modal";
+import EditBillModal from "@/components/modals/edit-bill-modal";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function BillsPage() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState<any>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { formatCurrency } = useCurrency();
 
   const { data: bills, isLoading } = useQuery({
     queryKey: ["/api/bills"],
   });
 
-  const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(parseFloat(amount));
+  const deleteBillMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/bills/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      toast({
+        title: "Success",
+        description: "Bill deleted successfully"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete bill: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleEdit = (bill: any) => {
+    setSelectedBill(bill);
+    setIsEditModalOpen(true);
   };
+
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this bill?")) {
+      deleteBillMutation.mutate(id);
+    }
+  };
+
+  // Remove the old formatCurrency function since we're using the context version
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -57,7 +93,7 @@ export default function BillsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />
@@ -106,9 +142,29 @@ export default function BillsPage() {
                         <div className={`w-12 h-12 ${iconColorClass} rounded-lg flex items-center justify-center`}>
                           <IconComponent className="h-6 w-6" />
                         </div>
-                        <Badge className={statusColorClass}>
-                          {bill.status}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Badge className={statusColorClass}>
+                            {bill.status}
+                          </Badge>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(bill)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(bill.id)}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                       
                       <h3 className="font-semibold text-gray-900 mb-2">{bill.name}</h3>
@@ -154,10 +210,15 @@ export default function BillsPage() {
         </div>
       </main>
 
-      {/* Modal */}
+      {/* Modals */}
       <AddBillModal 
         isOpen={isBillModalOpen}
         onClose={() => setIsBillModalOpen(false)}
+      />
+      <EditBillModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        bill={selectedBill}
       />
     </div>
   );

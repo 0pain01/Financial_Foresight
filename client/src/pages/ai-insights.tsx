@@ -3,10 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, TrendingUp, AlertTriangle, Target, Lightbulb, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
 export default function AIInsightsPage() {
+  const { formatCurrency } = useCurrency();
+  
   const { data: insights } = useQuery({
     queryKey: ["/api/insights"],
   });
@@ -48,15 +51,10 @@ export default function AIInsightsPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  // Remove the old formatCurrency function since we're using the context version
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />

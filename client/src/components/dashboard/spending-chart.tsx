@@ -2,8 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function SpendingChart() {
+  const [duration, setDuration] = useState("6months");
+  const { formatCurrency } = useCurrency();
+  
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions"],
   });
@@ -24,11 +29,56 @@ export default function SpendingChart() {
     );
   }
 
-  // Process transactions to create chart data
+  // Process transactions to create chart data based on duration
   const chartData = transactions ? (() => {
+    const now = new Date();
+    let monthsBack = 6; // default
+    
+    switch (duration) {
+      case "3months":
+        monthsBack = 3;
+        break;
+      case "6months":
+        monthsBack = 6;
+        break;
+      case "year":
+        monthsBack = 12;
+        break;
+      default:
+        monthsBack = 6;
+    }
+    
+    // If no transactions, create empty chart data for the selected period
+    if (!transactions || transactions.length === 0) {
+      const emptyData = [];
+      for (let i = monthsBack - 1; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        emptyData.push({
+          month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          expenses: 0,
+          income: 0
+        });
+      }
+      return emptyData;
+    }
+    
+    const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
+    
+    const filteredTransactions = transactions.filter((transaction: any) => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate >= cutoffDate;
+    });
+    
     const monthlyData: Record<string, { month: string, expenses: number, income: number }> = {};
     
-    transactions.forEach((transaction: any) => {
+    // Initialize all months in the range with zero values
+    for (let i = monthsBack - 1; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      monthlyData[monthKey] = { month: monthKey, expenses: 0, income: 0 };
+    }
+    
+    filteredTransactions.forEach((transaction: any) => {
       const date = new Date(transaction.date);
       const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       
@@ -44,7 +94,7 @@ export default function SpendingChart() {
       }
     });
     
-    return Object.values(monthlyData).slice(-6); // Last 6 months
+    return Object.values(monthlyData);
   })() : [];
 
   return (
@@ -52,7 +102,7 @@ export default function SpendingChart() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900">Spending Overview</CardTitle>
-          <Select defaultValue="6months">
+          <Select value={duration} onValueChange={setDuration}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -71,7 +121,7 @@ export default function SpendingChart() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
+              <Tooltip formatter={(value: number) => [formatCurrency(value), '']} />
               <Line 
                 type="monotone" 
                 dataKey="expenses" 

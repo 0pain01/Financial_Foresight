@@ -8,26 +8,26 @@ export default function Sidebar() {
     const isActive = location === path;
     return isActive
       ? "bg-finance-blue bg-opacity-10 border-r-4 border-finance-blue text-finance-blue flex items-center px-6 py-3 text-sm font-medium"
-      : "text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium";
+      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center px-6 py-3 text-sm font-medium";
   };
 
   return (
-    <aside className="w-64 bg-white shadow-lg hidden lg:block">
+    <aside className="w-64 bg-white dark:bg-gray-800 shadow-lg hidden lg:block">
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-finance-blue rounded-lg flex items-center justify-center">
             <BarChart3 className="text-white h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">FinanceTracker</h1>
-            <p className="text-sm text-gray-500">Pro</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">FinanceTracker</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Pro</p>
           </div>
         </div>
       </div>
       
       <nav className="mt-6">
         <div className="px-6 py-3">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Main</h3>
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</h3>
         </div>
         <div className="space-y-1">
           <Link href="/" className={getNavItemClass("/")}>
@@ -42,32 +42,32 @@ export default function Sidebar() {
             <Receipt className="mr-3 h-4 w-4" />
             Bills & Utilities
           </Link>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          <Link href="/analytics" className={getNavItemClass("/analytics")}>
             <PieChart className="mr-3 h-4 w-4" />
             Analytics
-          </a>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          </Link>
+          <Link href="/investments" className={getNavItemClass("/investments")}>
             <Sprout className="mr-3 h-4 w-4" />
             Investments
-          </a>
+          </Link>
         </div>
         
         <div className="px-6 py-3 mt-6">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tools</h3>
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tools</h3>
         </div>
         <div className="space-y-1">
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          <Link href="/ai-insights" className={getNavItemClass("/ai-insights")}>
             <Bot className="mr-3 h-4 w-4" />
             AI Insights
-          </a>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          </Link>
+          <Link href="/import-data" className={getNavItemClass("/import-data")}>
             <Upload className="mr-3 h-4 w-4" />
             Import Data
-          </a>
-          <a href="#" className="text-gray-700 hover:bg-gray-50 flex items-center px-6 py-3 text-sm font-medium">
+          </Link>
+          <Link href="/settings" className={getNavItemClass("/settings")}>
             <Settings className="mr-3 h-4 w-4" />
             Settings
-          </a>
+          </Link>
         </div>
       </nav>
     </aside>
