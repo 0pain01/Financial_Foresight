@@ -16,7 +16,10 @@ interface ThreeDBarChartProps {
 export default function ThreeDBarChart({ data, width = 800, height = 500 }: ThreeDBarChartProps) {
   // Transform data for Plotly 3D bar chart
   const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-  const years = [2021, 2022, 2023, 2024];
+  
+  // Get actual years from data
+  const years = [...new Set(data.map(d => d.year))].sort();
+  console.log('Years in 3D chart component:', years);
   
   // Create 2D matrix for surface plot
   const zMatrix: number[][] = [];
@@ -80,7 +83,8 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         gridcolor: 'var(--border)',
         tickmode: 'array',
         tickvals: years,
-        ticktext: years.map(y => y.toString())
+        ticktext: years.map(y => y.toString()),
+        type: 'category'
       },
       yaxis: {
         title: 'Categories',
