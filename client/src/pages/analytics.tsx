@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex bg-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />
@@ -292,9 +292,27 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height={400}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" dataKey="amount" name="Amount" />
-                  <YAxis type="number" dataKey="categoryIndex" name="Category" />
-                  <ZAxis type="number" dataKey="date" name="Date" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="amount" 
+                    name="Amount" 
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="categoryIndex" 
+                    name="Category"
+                    tickFormatter={(value) => {
+                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+                      return categories[value] || "Unknown";
+                    }}
+                  />
+                  <ZAxis 
+                    type="number" 
+                    dataKey="date" 
+                    name="Date"
+                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                  />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
                     formatter={(value: any, name: string, props: any) => {
@@ -306,14 +324,27 @@ export default function AnalyticsPage() {
                         return [new Date(value).toLocaleDateString(), "Date"];
                       }
                       if (name === 'amount') {
-                        return [`$${parseFloat(value).toFixed(2)}`, "Amount"];
+                        return [formatCurrency(parseFloat(value)), "Amount"];
                       }
                       return [value, name];
                     }}
+                    labelFormatter={(value: any, payload: any) => {
+                      if (payload && payload.length > 0) {
+                        const data = payload[0].payload;
+                        return `${data.description || 'Transaction'} (${data.type})`;
+                      }
+                      return '';
+                    }}
+                    contentStyle={{
+                      backgroundColor: 'var(--background)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--foreground)'
+                    }}
                   />
                   <Scatter 
-                    name="Transactions" 
-                    data={transactions?.map((t: any, index: number) => {
+                    name="Expenses" 
+                    data={transactions?.filter((t: any) => t.type === 'expense').map((t: any, index: number) => {
                       const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
                       const categoryIndex = categories.indexOf(t.category);
                       return {
@@ -321,10 +352,27 @@ export default function AnalyticsPage() {
                         categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
                         date: new Date(t.date).getTime(),
                         type: t.type,
-                        description: t.description
+                        description: t.description,
+                        category: t.category
                       };
                     }) || []} 
-                    fill="#8884d8" 
+                    fill="#ef4444" 
+                  />
+                  <Scatter 
+                    name="Income" 
+                    data={transactions?.filter((t: any) => t.type === 'income').map((t: any, index: number) => {
+                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+                      const categoryIndex = categories.indexOf(t.category);
+                      return {
+                        amount: parseFloat(t.amount),
+                        categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
+                        date: new Date(t.date).getTime(),
+                        type: t.type,
+                        description: t.description,
+                        category: t.category
+                      };
+                    }) || []} 
+                    fill="#10b981" 
                   />
                 </ScatterChart>
               </ResponsiveContainer>
@@ -348,7 +396,7 @@ export default function AnalyticsPage() {
                         </Badge>
                       </div>
                       <Progress value={budget.progress} className="h-2" />
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-muted-foreground">
                         <span>{budget.progress.toFixed(1)}% used</span>
                         <span>{formatCurrency(budget.remaining)} remaining</span>
                       </div>
@@ -356,7 +404,7 @@ export default function AnalyticsPage() {
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">No budgets set yet. Create your first budget to track spending!</p>
+                    <p className="text-muted-foreground">No budgets set yet. Create your first budget to track spending!</p>
                   </div>
                 )}
               </div>
