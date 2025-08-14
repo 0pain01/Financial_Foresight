@@ -14,6 +14,9 @@ interface ThreeDBarChartProps {
 }
 
 export default function ThreeDBarChart({ data, width = 800, height = 500 }: ThreeDBarChartProps) {
+  console.log('ThreeDBarChart component received data:', data);
+  console.log('Data length:', data?.length);
+  
   // Transform data for Plotly 3D bar chart
   const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
   
@@ -42,91 +45,39 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
   const maxValue = Math.max(...allValues);
   const minValue = Math.min(...allValues);
 
+  // Create simple 2D scatter data first to test
   const plotData = [
     {
-      type: 'scatter3d' as const,
-      x: years.flatMap(year => Array(categories.length).fill(year)),
-      y: categories.flatMap(category => Array(years.length).fill(category)),
-      z: zMatrix.flat(),
+      type: 'scatter' as const,
+      x: data.map(d => d.year),
+      y: data.map(d => d.amount),
       mode: 'markers' as const,
       marker: {
-        size: zMatrix.flat().map(val => Math.max(8, val / 100)),
-        color: zMatrix.flat().map(val => {
-          if (val > 5000) return '#ef4444'; // Red for high spending
-          if (val > 2000) return '#f59e0b'; // Orange for medium spending
+        size: data.map(d => Math.max(8, d.amount / 100)),
+        color: data.map(d => {
+          if (d.amount > 5000) return '#ef4444'; // Red for high spending
+          if (d.amount > 2000) return '#f59e0b'; // Orange for medium spending
           return '#10b981'; // Green for low spending
         }),
-        opacity: 0.8,
-        colorscale: [
-          [0, '#10b981'],    // Green for low values
-          [0.5, '#f59e0b'],  // Orange for medium values
-          [1, '#ef4444']     // Red for high values
-        ]
+        opacity: 0.8
       },
-      text: zMatrix.flat().map((val, i) => {
-        const categoryIndex = Math.floor(i / years.length);
-        const yearIndex = i % years.length;
-        return `${categories[categoryIndex]} - ${years[yearIndex]}: $${val.toLocaleString()}`;
-      }),
+      text: data.map(d => `${d.category} - ${d.year}: $${d.amount.toLocaleString()}`),
       hovertemplate: 
         '<b>%{text}</b><br>' +
-        'Category: %{y}<br>' +
         'Year: %{x}<br>' +
-        'Amount: $%{z:,.0f}<br>' +
+        'Amount: $%{y:,.0f}<br>' +
         '<extra></extra>'
     }
   ];
+  
+  console.log('Plot data:', plotData);
 
   const layout = {
-    title: {
-      text: '3D Spending Analysis by Category and Year',
-      font: { size: 16, color: 'var(--foreground)' }
-    },
-    scene: {
-      xaxis: {
-        title: 'Years',
-        titlefont: { color: 'var(--foreground)' },
-        tickfont: { color: 'var(--foreground)' },
-        gridcolor: 'var(--border)',
-        tickmode: 'array',
-        tickvals: years,
-        ticktext: years.map(y => y.toString())
-      },
-      yaxis: {
-        title: 'Categories',
-        titlefont: { color: 'var(--foreground)' },
-        tickfont: { color: 'var(--foreground)' },
-        gridcolor: 'var(--border)',
-        tickmode: 'array',
-        tickvals: categories,
-        ticktext: categories
-      },
-      zaxis: {
-        title: 'Amount ($)',
-        titlefont: { color: 'var(--foreground)' },
-        tickfont: { color: 'var(--foreground)' },
-        gridcolor: 'var(--border)',
-        tickformat: ',.0f'
-      },
-      camera: {
-        eye: { x: 1.5, y: 1.5, z: 1.5 }
-      },
-      bgcolor: 'var(--background)'
-    },
+    title: '2D Spending Analysis by Year (Testing)',
+    xaxis: { title: 'Years' },
+    yaxis: { title: 'Amount ($)' },
     width: width,
-    height: height,
-    paper_bgcolor: 'var(--background)',
-    plot_bgcolor: 'var(--background)',
-    font: {
-      color: 'var(--foreground)'
-    },
-    margin: {
-      l: 50,
-      r: 50,
-      b: 50,
-      t: 50,
-      pad: 4
-    }
+    height: height
   };
 
   const config = {
@@ -138,6 +89,12 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
 
   return (
     <div className="w-full">
+      <div style={{ border: '1px solid red', padding: '10px', margin: '10px' }}>
+        <p>Debug Info:</p>
+        <p>Data length: {data?.length}</p>
+        <p>Years: {years.join(', ')}</p>
+        <p>Sample data point: {data?.[0] ? JSON.stringify(data[0]) : 'No data'}</p>
+      </div>
       <Plot
         data={plotData}
         layout={layout}
