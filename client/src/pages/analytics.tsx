@@ -289,12 +289,12 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* 3D Spending Analysis */}
+          {/* Spending Analysis by Category and Date */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5" />
-                3D Spending Analysis (All Time)
+                Spending Analysis by Category and Date
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -308,25 +308,15 @@ export default function AnalyticsPage() {
                     tickFormatter={(value) => formatCurrency(value)}
                   />
                   <YAxis 
-                    type="number" 
-                    dataKey="categoryIndex" 
+                    type="category" 
+                    dataKey="category" 
                     name="Category"
-                    tickFormatter={(value) => {
-                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-                      return categories[value] || "Unknown";
-                    }}
-                  />
-                  <ZAxis 
-                    type="number" 
-                    dataKey="date" 
-                    name="Date"
                   />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
                     formatter={(value: any, name: string, props: any) => {
-                      if (name === 'categoryIndex') {
-                        const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-                        return [categories[value] || "Unknown", "Category"];
+                      if (name === 'category') {
+                        return [value, "Category"];
                       }
                       if (name === 'date') {
                         return [new Date(value).toLocaleDateString(), "Date"];
@@ -353,15 +343,12 @@ export default function AnalyticsPage() {
                   <Scatter 
                     name="Expenses" 
                     data={transactions && Array.isArray(transactions) ? transactions.filter((t: any) => t.type === 'expense').map((t: any, index: number) => {
-                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-                      const categoryIndex = categories.indexOf(t.category);
                       const dataPoint = {
                         amount: parseFloat(t.amount),
-                        categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
+                        category: t.category || "Other",
                         date: new Date(t.date).getTime(),
                         type: t.type,
-                        description: t.description,
-                        category: t.category
+                        description: t.description
                       };
                       console.log('Expense data point:', dataPoint);
                       return dataPoint;
@@ -371,20 +358,73 @@ export default function AnalyticsPage() {
                   <Scatter 
                     name="Income" 
                     data={transactions && Array.isArray(transactions) ? transactions.filter((t: any) => t.type === 'income').map((t: any, index: number) => {
-                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-                      const categoryIndex = categories.indexOf(t.category);
                       return {
                         amount: parseFloat(t.amount),
-                        categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
+                        category: t.category || "Other",
                         date: new Date(t.date).getTime(),
                         type: t.type,
-                        description: t.description,
-                        category: t.category
+                        description: t.description
                       };
                     }) : []} 
                     fill="#10b981" 
                   />
                 </ScatterChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Spending Over Time */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <TrendingDown className="mr-2 h-5 w-5" />
+                Spending Over Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={spendingTrends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="month" 
+                    tickFormatter={(value) => {
+                      const [year, month] = value.split('-');
+                      return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                    }}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => formatCurrency(value)}
+                  />
+                  <Tooltip 
+                    formatter={(value: any, name: string) => {
+                      return [formatCurrency(value), name === 'income' ? 'Income' : 'Expenses'];
+                    }}
+                    labelFormatter={(value) => {
+                      const [year, month] = value.split('-');
+                      return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    }}
+                    contentStyle={{
+                      backgroundColor: 'var(--background)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--foreground)'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="income" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    name="Income"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="expenses" 
+                    stroke="#ef4444" 
+                    strokeWidth={2}
+                    name="Expenses"
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
