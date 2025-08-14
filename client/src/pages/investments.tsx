@@ -2,9 +2,20 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Percent, Edit, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useToast } from "@/hooks/use-toast";
 import AddInvestmentModal from "@/components/modals/add-investment-modal";
 import EditInvestmentModal from "@/components/modals/edit-investment-modal";
 import Sidebar from "@/components/layout/sidebar";
@@ -13,9 +24,12 @@ import Topbar from "@/components/layout/topbar";
 export default function InvestmentsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
+  const [investmentToDelete, setInvestmentToDelete] = useState<any>(null);
   const { formatCurrency } = useCurrency();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: investments, isLoading } = useQuery({
     queryKey: ["/api/investments"],
@@ -59,7 +73,19 @@ export default function InvestmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/investments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      toast({
+        title: "Success",
+        description: "Investment deleted successfully"
+      });
     },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete investment: ${error.message}`,
+        variant: "destructive"
+      });
+    }
   });
 
   const handleEdit = (investment: any) => {
@@ -67,9 +93,16 @@ export default function InvestmentsPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this investment?')) {
-      deleteInvestmentMutation.mutate(id);
+  const handleDelete = (investment: any) => {
+    setInvestmentToDelete(investment);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (investmentToDelete) {
+      deleteInvestmentMutation.mutate(investmentToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setInvestmentToDelete(null);
     }
   };
 
@@ -229,7 +262,7 @@ export default function InvestmentsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDelete(investment.id)}
+                                onClick={() => handleDelete(investment)}
                                 className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                                 disabled={deleteInvestmentMutation.isPending}
                               >
@@ -269,6 +302,29 @@ export default function InvestmentsPage() {
         }}
         investment={selectedInvestment}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Investment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {investmentToDelete?.symbol} ({investmentToDelete?.name})? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteInvestmentMutation.isPending}
+            >
+              {deleteInvestmentMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

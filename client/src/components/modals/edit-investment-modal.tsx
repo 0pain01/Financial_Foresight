@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditInvestmentModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
 
   const { formatCurrency } = useCurrency();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (investment) {
@@ -57,8 +59,20 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/investments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      toast({
+        title: "Success",
+        description: "Investment updated successfully"
+      });
       onClose();
     },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update investment: ${error.message}`,
+        variant: "destructive"
+      });
+    }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
