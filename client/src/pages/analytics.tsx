@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart as RechartsPieChart, Cell, Pie, ScatterChart, Scatter, ZAxis } from 'recharts';
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
-import ThreeDBarChart from "@/components/charts/3d-bar-chart";
+import SpendingAnalysisChart from "@/components/charts/3d-bar-chart";
 
 export default function AnalyticsPage() {
   const [duration, setDuration] = useState("6months");
@@ -381,25 +381,25 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* 3D Spending Analysis by Category and Year */}
+          {/* Spending Analysis Charts */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5" />
-                3D Spending Analysis by Category and Year
+                Spending Analysis by Category and Year
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex justify-center">
-                <ThreeDBarChart 
+                <SpendingAnalysisChart 
                   data={threeDChartData} 
-                  width={800} 
+                  width={1200} 
                   height={500} 
                 />
               </div>
               <div className="mt-4 text-center text-sm text-muted-foreground">
-                <p>X-axis: Spending Categories | Y-axis: Years | Z-axis: Amount (Height)</p>
-                <p>Use mouse to rotate, scroll to zoom, and drag to pan</p>
+                <p>Left Chart: Cost vs Year | Right Chart: Category vs Cost</p>
+                <p>Hover over points to see detailed information</p>
               </div>
             </CardContent>
           </Card>

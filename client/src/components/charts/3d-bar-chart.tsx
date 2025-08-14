@@ -7,13 +7,13 @@ interface SpendingData {
   amount: number;
 }
 
-interface ThreeDBarChartProps {
+interface SpendingAnalysisChartProps {
   data: SpendingData[];
   width?: number;
   height?: number;
 }
 
-export default function ThreeDBarChart({ data, width = 800, height = 500 }: ThreeDBarChartProps) {
+export default function SpendingAnalysisChart({ data, width = 800, height = 500 }: SpendingAnalysisChartProps) {
   console.log('ThreeDBarChart component received data:', data);
   console.log('Data length:', data?.length);
   
@@ -45,8 +45,8 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
   const maxValue = Math.max(...allValues);
   const minValue = Math.min(...allValues);
 
-  // Create simple 2D scatter data first to test
-  const plotData = [
+  // Create data for Cost vs Year chart
+  const costVsYearData = [
     {
       type: 'scatter' as const,
       x: data.map(d => d.year),
@@ -69,14 +69,46 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         '<extra></extra>'
     }
   ];
-  
-  console.log('Plot data:', plotData);
 
-  const layout = {
-    title: { text: '2D Spending Analysis by Year (Testing)' },
+  // Create data for Category vs Cost chart
+  const categoryVsCostData = [
+    {
+      type: 'bar' as const,
+      x: data.map(d => d.category),
+      y: data.map(d => d.amount),
+      marker: {
+        color: data.map(d => {
+          if (d.amount > 5000) return '#ef4444'; // Red for high spending
+          if (d.amount > 2000) return '#f59e0b'; // Orange for medium spending
+          return '#10b981'; // Green for low spending
+        }),
+        opacity: 0.8
+      },
+      text: data.map(d => `$${d.amount.toLocaleString()}`),
+      textposition: 'auto' as const,
+      hovertemplate: 
+        '<b>%{x}</b><br>' +
+        'Amount: $%{y:,.0f}<br>' +
+        '<extra></extra>'
+    }
+  ];
+
+  console.log('Cost vs Year data:', costVsYearData);
+  console.log('Category vs Cost data:', categoryVsCostData);
+
+  const costVsYearLayout = {
+    title: { text: 'Cost vs Year Analysis' },
     xaxis: { title: 'Years' },
     yaxis: { title: 'Amount ($)' },
-    width: width,
+    width: width / 2 - 20,
+    height: height
+  };
+
+  const categoryVsCostLayout = {
+    title: { text: 'Category vs Cost Analysis' },
+    xaxis: { title: 'Categories' },
+    yaxis: { title: 'Amount ($)' },
+    width: width / 2 - 20,
     height: height
   };
 
@@ -95,13 +127,30 @@ export default function ThreeDBarChart({ data, width = 800, height = 500 }: Thre
         <p>Years: {years.join(', ')}</p>
         <p>Sample data point: {data?.[0] ? JSON.stringify(data[0]) : 'No data'}</p>
       </div>
-      <Plot
-        data={plotData}
-        layout={layout}
-        config={config}
-        style={{ width: '100%', height: '100%' }}
-        useResizeHandler={true}
-      />
+      
+      <div style={{ display: 'flex', gap: '20px', justifyContent: 'space-between' }}>
+        {/* Cost vs Year Chart */}
+        <div style={{ flex: 1 }}>
+          <Plot
+            data={costVsYearData}
+            layout={costVsYearLayout}
+            config={config}
+            style={{ width: '100%', height: '100%' }}
+            useResizeHandler={true}
+          />
+        </div>
+        
+        {/* Category vs Cost Chart */}
+        <div style={{ flex: 1 }}>
+          <Plot
+            data={categoryVsCostData}
+            layout={categoryVsCostLayout}
+            config={config}
+            style={{ width: '100%', height: '100%' }}
+            useResizeHandler={true}
+          />
+        </div>
+      </div>
     </div>
   );
 }
