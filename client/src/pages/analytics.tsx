@@ -17,6 +17,15 @@ export default function AnalyticsPage() {
     queryKey: ["/api/transactions"],
   });
 
+  // Debug: Log transaction data
+  console.log('Transactions data:', transactions);
+  
+  // Debug: Log unique categories
+  if (transactions && Array.isArray(transactions)) {
+    const uniqueCategories = Array.from(new Set(transactions.map((t: any) => t.category)));
+    console.log('Unique categories in data:', uniqueCategories);
+  }
+
   const { data: bills } = useQuery({
     queryKey: ["/api/bills"],
   });
@@ -31,7 +40,7 @@ export default function AnalyticsPage() {
 
   // Calculate spending trends based on duration
   const calculateSpendingTrends = () => {
-    if (!transactions) return [];
+    if (!transactions || !Array.isArray(transactions)) return [];
     
     const now = new Date();
     let monthsBack = 6; // default
@@ -79,7 +88,7 @@ export default function AnalyticsPage() {
 
   // Calculate category spending
   const calculateCategorySpending = () => {
-    if (!transactions) return [];
+    if (!transactions || !Array.isArray(transactions)) return [];
     
     const categoryData = transactions.reduce((acc: any, transaction: any) => {
       if (transaction.type === 'expense') {
@@ -97,7 +106,7 @@ export default function AnalyticsPage() {
 
   // Calculate budget progress
   const calculateBudgetProgress = () => {
-    if (!budgets || !transactions) return [];
+    if (!budgets || !Array.isArray(budgets) || !transactions || !Array.isArray(transactions)) return [];
     
     return budgets.map((budget: any) => {
       const spent = transactions
@@ -167,8 +176,8 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Total Balance</p>
-                <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(dashboardData?.totalBalance || 0)}
+                                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency((dashboardData as any)?.totalBalance || 0)}
                     </p>
                   </div>
                 </div>
@@ -183,8 +192,8 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Monthly Income</p>
-                <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(dashboardData?.monthlyIncome || 0)}
+                                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency((dashboardData as any)?.monthlyIncome || 0)}
                     </p>
                   </div>
                 </div>
@@ -199,8 +208,8 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Monthly Expenses</p>
-                <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(dashboardData?.monthlyExpenses || 0)}
+                                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency((dashboardData as any)?.monthlyExpenses || 0)}
                     </p>
                   </div>
                 </div>
@@ -215,9 +224,9 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Savings Rate</p>
-                <p className="text-2xl font-bold text-foreground">
+                                    <p className="text-2xl font-bold text-foreground">
                       {dashboardData ? 
-                        Math.round(((dashboardData.monthlyIncome - dashboardData.monthlyExpenses) / dashboardData.monthlyIncome) * 100) : 0}%
+                        Math.round((((dashboardData as any).monthlyIncome - (dashboardData as any).monthlyExpenses) / (dashboardData as any).monthlyIncome) * 100) : 0}%
                     </p>
                   </div>
                 </div>
@@ -311,7 +320,6 @@ export default function AnalyticsPage() {
                     type="number" 
                     dataKey="date" 
                     name="Date"
-                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
                   />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }}
@@ -344,10 +352,10 @@ export default function AnalyticsPage() {
                   />
                   <Scatter 
                     name="Expenses" 
-                    data={transactions?.filter((t: any) => t.type === 'expense').map((t: any, index: number) => {
+                    data={transactions && Array.isArray(transactions) ? transactions.filter((t: any) => t.type === 'expense').map((t: any, index: number) => {
                       const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
                       const categoryIndex = categories.indexOf(t.category);
-                      return {
+                      const dataPoint = {
                         amount: parseFloat(t.amount),
                         categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
                         date: new Date(t.date).getTime(),
@@ -355,12 +363,14 @@ export default function AnalyticsPage() {
                         description: t.description,
                         category: t.category
                       };
-                    }) || []} 
+                      console.log('Expense data point:', dataPoint);
+                      return dataPoint;
+                    }) : []} 
                     fill="#ef4444" 
                   />
                   <Scatter 
                     name="Income" 
-                    data={transactions?.filter((t: any) => t.type === 'income').map((t: any, index: number) => {
+                    data={transactions && Array.isArray(transactions) ? transactions.filter((t: any) => t.type === 'income').map((t: any, index: number) => {
                       const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
                       const categoryIndex = categories.indexOf(t.category);
                       return {
@@ -371,7 +381,7 @@ export default function AnalyticsPage() {
                         description: t.description,
                         category: t.category
                       };
-                    }) || []} 
+                    }) : []} 
                     fill="#10b981" 
                   />
                 </ScatterChart>
@@ -386,7 +396,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {budgetProgress.length > 0 ? (
+                {budgetProgress && budgetProgress.length > 0 ? (
                   budgetProgress.map((budget: any) => (
                     <div key={budget.id} className="space-y-2">
                       <div className="flex justify-between items-center">
