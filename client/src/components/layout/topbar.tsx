@@ -9,8 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
+import { useUser } from "@/contexts/UserContext";
 
 export default function Topbar() {
+  const { user, getUserInitials } = useUser();
+  
   const handleLogout = () => {
     // Implement logout logic here
     console.log("Logging out...");
@@ -53,16 +56,21 @@ export default function Topbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <div className="w-8 h-8 bg-finance-blue rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">JD</span>
+                    <span className="text-white text-sm font-medium">{getUserInitials()}</span>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">John Doe</p>
+                    <p className="font-medium">
+                      {user?.firstName && user?.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user?.username || 'User'
+                      }
+                    </p>
                     <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      john.doe@example.com
+                      {user?.email || `${user?.username || 'user'}@example.com`}
                     </p>
                   </div>
                 </div>
