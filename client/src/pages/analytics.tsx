@@ -165,56 +165,10 @@ export default function AnalyticsPage() {
       }
     }
     
-    // Add some sample data if no real data exists
+    // Return empty array if no real data exists
     if (data.every(d => d.amount === 0)) {
-      console.log('No transaction data found, adding sample data for 3D chart');
-      return [
-        { category: "Food & Dining", year: 2021, amount: 1200 },
-        { category: "Food & Dining", year: 2022, amount: 1400 },
-        { category: "Food & Dining", year: 2023, amount: 1600 },
-        { category: "Food & Dining", year: 2024, amount: 1800 },
-        { category: "Food & Dining", year: 2025, amount: 2000 },
-        { category: "Transportation", year: 2021, amount: 800 },
-        { category: "Transportation", year: 2022, amount: 900 },
-        { category: "Transportation", year: 2023, amount: 1000 },
-        { category: "Transportation", year: 2024, amount: 1100 },
-        { category: "Transportation", year: 2025, amount: 1200 },
-        { category: "Shopping", year: 2021, amount: 600 },
-        { category: "Shopping", year: 2022, amount: 700 },
-        { category: "Shopping", year: 2023, amount: 800 },
-        { category: "Shopping", year: 2024, amount: 900 },
-        { category: "Shopping", year: 2025, amount: 1000 },
-        { category: "Bills & Utilities", year: 2021, amount: 2000 },
-        { category: "Bills & Utilities", year: 2022, amount: 2200 },
-        { category: "Bills & Utilities", year: 2023, amount: 2400 },
-        { category: "Bills & Utilities", year: 2024, amount: 2600 },
-        { category: "Bills & Utilities", year: 2025, amount: 2800 },
-        { category: "Entertainment", year: 2021, amount: 400 },
-        { category: "Entertainment", year: 2022, amount: 500 },
-        { category: "Entertainment", year: 2023, amount: 600 },
-        { category: "Entertainment", year: 2024, amount: 700 },
-        { category: "Entertainment", year: 2025, amount: 800 },
-        { category: "Healthcare", year: 2021, amount: 300 },
-        { category: "Healthcare", year: 2022, amount: 350 },
-        { category: "Healthcare", year: 2023, amount: 400 },
-        { category: "Healthcare", year: 2024, amount: 450 },
-        { category: "Healthcare", year: 2025, amount: 500 },
-        { category: "Housing", year: 2021, amount: 5000 },
-        { category: "Housing", year: 2022, amount: 5200 },
-        { category: "Housing", year: 2023, amount: 5400 },
-        { category: "Housing", year: 2024, amount: 5600 },
-        { category: "Housing", year: 2025, amount: 5800 },
-        { category: "Income", year: 2021, amount: 0 },
-        { category: "Income", year: 2022, amount: 0 },
-        { category: "Income", year: 2023, amount: 0 },
-        { category: "Income", year: 2024, amount: 0 },
-        { category: "Income", year: 2025, amount: 0 },
-        { category: "Other", year: 2021, amount: 200 },
-        { category: "Other", year: 2022, amount: 250 },
-        { category: "Other", year: 2023, amount: 300 },
-        { category: "Other", year: 2024, amount: 350 },
-        { category: "Other", year: 2025, amount: 400 }
-      ];
+      console.log('No transaction data found for 3D chart');
+      return [];
     }
     
     console.log('3D Chart Data:', data);

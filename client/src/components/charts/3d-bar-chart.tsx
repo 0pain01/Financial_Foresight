@@ -14,18 +14,13 @@ interface SpendingAnalysisChartProps {
 }
 
 export default function SpendingAnalysisChart({ data, width = 800, height = 500 }: SpendingAnalysisChartProps) {
-  console.log('ThreeDBarChart component received data:', data);
-  console.log('Data length:', data?.length);
-  
-  // Transform data for Plotly 3D bar chart
+  // Transform data for Plotly charts
   const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
   
   // Get actual years from data
   const years = Array.from(new Set(data.map(d => d.year))).sort();
-  console.log('Years in 3D chart component:', years);
-  console.log('Input data:', data);
   
-  // Create 2D matrix for surface plot
+  // Create 2D matrix for data processing
   const zMatrix: number[][] = [];
   
   categories.forEach(category => {
@@ -36,29 +31,26 @@ export default function SpendingAnalysisChart({ data, width = 800, height = 500 
     });
     zMatrix.push(row);
   });
-  
-  console.log('Z Matrix:', zMatrix);
-  console.log('Flat Z values:', zMatrix.flat());
 
   // Find min and max values for proper scaling
   const allValues = zMatrix.flat();
   const maxValue = Math.max(...allValues);
   const minValue = Math.min(...allValues);
 
-  // Create data for Cost vs Year chart
+  // Create data for Cost vs Year chart (Line Chart)
   const costVsYearData = [
     {
       type: 'scatter' as const,
       x: data.map(d => d.year),
       y: data.map(d => d.amount),
-      mode: 'markers' as const,
+      mode: 'lines+markers' as const,
+      line: {
+        color: '#3B82F6',
+        width: 3
+      },
       marker: {
-        size: data.map(d => Math.max(8, d.amount / 100)),
-        color: data.map(d => {
-          if (d.amount > 5000) return '#ef4444'; // Red for high spending
-          if (d.amount > 2000) return '#f59e0b'; // Orange for medium spending
-          return '#10b981'; // Green for low spending
-        }),
+        size: 8,
+        color: '#3B82F6',
         opacity: 0.8
       },
       text: data.map(d => `${d.category} - ${d.year}: $${d.amount.toLocaleString()}`),
@@ -93,8 +85,7 @@ export default function SpendingAnalysisChart({ data, width = 800, height = 500 
     }
   ];
 
-  console.log('Cost vs Year data:', costVsYearData);
-  console.log('Category vs Cost data:', categoryVsCostData);
+
 
   const costVsYearLayout = {
     title: { text: 'Cost vs Year Analysis' },
@@ -121,13 +112,6 @@ export default function SpendingAnalysisChart({ data, width = 800, height = 500 
 
   return (
     <div className="w-full">
-      <div style={{ border: '1px solid red', padding: '10px', margin: '10px' }}>
-        <p>Debug Info:</p>
-        <p>Data length: {data?.length}</p>
-        <p>Years: {years.join(', ')}</p>
-        <p>Sample data point: {data?.[0] ? JSON.stringify(data[0]) : 'No data'}</p>
-      </div>
-      
       <div style={{ display: 'flex', gap: '20px', justifyContent: 'space-between' }}>
         {/* Cost vs Year Chart */}
         <div style={{ flex: 1 }}>
