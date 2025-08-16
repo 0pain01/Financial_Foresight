@@ -57,8 +57,18 @@ public class BillController {
 
     @PutMapping("/bills/{id}")
     public ResponseEntity<Bill> updateBill(@PathVariable Long id, @RequestBody Bill bill, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         return billRepository.findById(id)
                 .map(existingBill -> {
+                    // Ensure the bill belongs to the current user
+                    if (!existingBill.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
                     if (bill.getName() != null) existingBill.setName(bill.getName());
                     if (bill.getAmount() != null) existingBill.setAmount(bill.getAmount());
                     if (bill.getCategory() != null) existingBill.setCategory(bill.getCategory());
@@ -75,13 +85,23 @@ public class BillController {
 
     @DeleteMapping("/bills/{id}")
     public ResponseEntity<Map<String, String>> deleteBill(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        if (billRepository.existsById(id)) {
-            billRepository.deleteById(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Bill deleted successfully");
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.notFound().build();
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        
+        return billRepository.findById(id)
+                .map(existingBill -> {
+                    // Ensure the bill belongs to the current user
+                    if (!existingBill.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
+                    billRepository.deleteById(id);
+                    Map<String, String> response = new HashMap<>();
+                    response.put("message", "Bill deleted successfully");
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -2,6 +2,9 @@ package com.fintrack.controller;
 
 import com.fintrack.model.*;
 import com.fintrack.repository.*;
+import com.fintrack.util.UserUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +19,9 @@ public class InsightsController {
     private final IncomeRepository incomeRepository;
     private final InvestmentRepository investmentRepository;
 
+    @Autowired
+    private UserUtil userUtil;
+
     public InsightsController(TransactionRepository transactionRepository,
                               BillRepository billRepository,
                               IncomeRepository incomeRepository,
@@ -27,8 +33,12 @@ public class InsightsController {
     }
 
     @GetMapping("/insights")
-    public ResponseEntity<?> getInsights() {
-        long userId = 1L; // demo
+    public ResponseEntity<?> getInsights(@RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         List<Bill> bills = billRepository.findByUserId(userId);
         List<Income> incomes = incomeRepository.findByUserId(userId);
@@ -59,8 +69,12 @@ public class InsightsController {
     }
 
     @GetMapping("/savings-projection")
-    public ResponseEntity<?> getSavingsProjection() {
-        long userId = 1L; // demo
+    public ResponseEntity<?> getSavingsProjection(@RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         List<Income> incomes = incomeRepository.findByUserId(userId);
         List<Investment> investments = investmentRepository.findByUserId(userId);
@@ -88,8 +102,12 @@ public class InsightsController {
     }
 
     @GetMapping("/net-worth-projection")
-    public ResponseEntity<?> getNetWorthProjection() {
-        long userId = 1L; // demo
+    public ResponseEntity<?> getNetWorthProjection(@RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         List<Income> incomes = incomeRepository.findByUserId(userId);
         List<Investment> investments = investmentRepository.findByUserId(userId);

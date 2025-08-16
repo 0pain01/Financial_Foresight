@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = localStorage.getItem('authToken');
       if (token) {
-                  const response = await fetch('http://localhost:8080/api/auth/me', {
+        const response = await fetch('http://localhost:8080/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -43,13 +43,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
-        } else {
+        } else if (response.status === 401) {
+          // Token is invalid or expired
+          console.log('Token expired or invalid, logging out user');
           localStorage.removeItem('authToken');
+          setUser(null);
+        } else {
+          console.error('Auth check failed with status:', response.status);
+          localStorage.removeItem('authToken');
+          setUser(null);
         }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('authToken');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

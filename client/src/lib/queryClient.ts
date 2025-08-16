@@ -3,7 +3,20 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    
+    // Handle specific HTTP status codes with better error messages
+    switch (res.status) {
+      case 401:
+        throw new Error("Authentication failed. Please log in again.");
+      case 403:
+        throw new Error("Access denied. You don't have permission to perform this action.");
+      case 404:
+        throw new Error("Resource not found.");
+      case 500:
+        throw new Error("Server error. Please try again later.");
+      default:
+        throw new Error(`${res.status}: ${text}`);
+    }
   }
 }
 
@@ -39,7 +52,20 @@ export async function apiRequest(
   if (!res.ok) {
     const text = await res.text();
     console.error(`API Error ${res.status}: ${text}`);
-    throw new Error(`${res.status}: ${text}`);
+    
+    // Handle specific HTTP status codes with better error messages
+    switch (res.status) {
+      case 401:
+        throw new Error("Authentication failed. Please log in again.");
+      case 403:
+        throw new Error("Access denied. You don't have permission to perform this action.");
+      case 404:
+        throw new Error("Resource not found.");
+      case 500:
+        throw new Error("Server error. Please try again later.");
+      default:
+        throw new Error(`${res.status}: ${text}`);
+    }
   }
   
   return res;
@@ -77,7 +103,20 @@ export const getQueryFn: <T>(options: {
     if (!res.ok) {
       const text = await res.text();
       console.error(`Query Error ${res.status}: ${text}`);
-      throw new Error(`${res.status}: ${text}`);
+      
+      // Handle specific HTTP status codes with better error messages
+      switch (res.status) {
+        case 401:
+          throw new Error("Authentication failed. Please log in again.");
+        case 403:
+          throw new Error("Access denied. You don't have permission to perform this action.");
+        case 404:
+          throw new Error("Resource not found.");
+        case 500:
+          throw new Error("Server error. Please try again later.");
+        default:
+          throw new Error(`${res.status}: ${text}`);
+      }
     }
     
     return await res.json();
