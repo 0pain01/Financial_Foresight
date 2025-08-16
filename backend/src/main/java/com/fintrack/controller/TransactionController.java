@@ -58,15 +58,22 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         System.out.println("Received transaction update request for ID: " + id);
-        if (!transactionRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        transaction.setId(id);
-        transaction.setUserId(userId);
-        transaction.setCreatedAt(LocalDateTime.now());
-        Transaction updatedTransaction = transactionRepository.save(transaction);
-        System.out.println("Transaction updated successfully: " + updatedTransaction.getId());
-        return ResponseEntity.ok(updatedTransaction);
+        
+        return transactionRepository.findById(id)
+                .map(existingTransaction -> {
+                    // Ensure the transaction belongs to the current user
+                    if (!existingTransaction.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
+                    transaction.setId(id);
+                    transaction.setUserId(userId);
+                    transaction.setCreatedAt(LocalDateTime.now());
+                    Transaction updatedTransaction = transactionRepository.save(transaction);
+                    System.out.println("Transaction updated successfully: " + updatedTransaction.getId());
+                    return ResponseEntity.ok(updatedTransaction);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/transactions/{id}")
@@ -76,13 +83,20 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         System.out.println("Received transaction delete request for ID: " + id);
-        if (!transactionRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        transactionRepository.deleteById(id);
-        System.out.println("Transaction deleted successfully: " + id);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Transaction deleted successfully");
-        return ResponseEntity.ok(response);
+        
+        return transactionRepository.findById(id)
+                .map(existingTransaction -> {
+                    // Ensure the transaction belongs to the current user
+                    if (!existingTransaction.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
+                    transactionRepository.deleteById(id);
+                    System.out.println("Transaction deleted successfully: " + id);
+                    Map<String, String> response = new HashMap<>();
+                    response.put("message", "Transaction deleted successfully");
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

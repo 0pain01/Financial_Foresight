@@ -48,8 +48,18 @@ public class IncomeController {
 
     @PutMapping("/incomes/{id}")
     public ResponseEntity<Income> updateIncome(@PathVariable Long id, @RequestBody Income income, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         return incomeRepository.findById(id)
                 .map(existingIncome -> {
+                    // Ensure the income belongs to the current user
+                    if (!existingIncome.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
                     if (income.getSource() != null) existingIncome.setSource(income.getSource());
                     if (income.getAmount() != null) existingIncome.setAmount(income.getAmount());
                     if (income.getFrequency() != null) existingIncome.setFrequency(income.getFrequency());
@@ -61,7 +71,21 @@ public class IncomeController {
 
     @DeleteMapping("/incomes/{id}")
     public ResponseEntity<?> deleteIncome(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        incomeRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        return incomeRepository.findById(id)
+                .map(existingIncome -> {
+                    // Ensure the income belongs to the current user
+                    if (!existingIncome.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
+                    incomeRepository.deleteById(id);
+                    return ResponseEntity.ok().build();
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

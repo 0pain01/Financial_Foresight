@@ -48,8 +48,18 @@ public class BudgetController {
 
     @PutMapping("/budgets/{id}")
     public ResponseEntity<Budget> updateBudget(@PathVariable Long id, @RequestBody Budget budget, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         return budgetRepository.findById(id)
                 .map(existingBudget -> {
+                    // Ensure the budget belongs to the current user
+                    if (!existingBudget.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
                     if (budget.getCategory() != null) existingBudget.setCategory(budget.getCategory());
                     if (budget.getAmount() != null) existingBudget.setAmount(budget.getAmount());
                     if (budget.getPeriod() != null) existingBudget.setPeriod(budget.getPeriod());
@@ -61,7 +71,21 @@ public class BudgetController {
 
     @DeleteMapping("/budgets/{id}")
     public ResponseEntity<?> deleteBudget(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        budgetRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        return budgetRepository.findById(id)
+                .map(existingBudget -> {
+                    // Ensure the budget belongs to the current user
+                    if (!existingBudget.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
+                    budgetRepository.deleteById(id);
+                    return ResponseEntity.ok().build();
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

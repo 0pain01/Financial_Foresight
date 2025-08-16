@@ -47,8 +47,18 @@ public class InvestmentController {
 
     @PutMapping("/investments/{id}")
     public ResponseEntity<Investment> updateInvestment(@PathVariable Long id, @RequestBody Investment investment, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         return investmentRepository.findById(id)
                 .map(existingInvestment -> {
+                    // Ensure the investment belongs to the current user
+                    if (!existingInvestment.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
                     if (investment.getSymbol() != null) existingInvestment.setSymbol(investment.getSymbol());
                     if (investment.getName() != null) existingInvestment.setName(investment.getName());
                     if (investment.getType() != null) existingInvestment.setType(investment.getType());
@@ -62,13 +72,23 @@ public class InvestmentController {
 
     @DeleteMapping("/investments/{id}")
     public ResponseEntity<Map<String, String>> deleteInvestment(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        if (investmentRepository.existsById(id)) {
-            investmentRepository.deleteById(id);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Investment deleted successfully");
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.notFound().build();
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        
+        return investmentRepository.findById(id)
+                .map(existingInvestment -> {
+                    // Ensure the investment belongs to the current user
+                    if (!existingInvestment.getUserId().equals(userId)) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                    }
+                    
+                    investmentRepository.deleteById(id);
+                    Map<String, String> response = new HashMap<>();
+                    response.put("message", "Investment deleted successfully");
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

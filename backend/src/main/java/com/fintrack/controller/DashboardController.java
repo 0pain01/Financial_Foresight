@@ -2,6 +2,9 @@ package com.fintrack.controller;
 
 import com.fintrack.model.*;
 import com.fintrack.repository.*;
+import com.fintrack.util.UserUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +19,9 @@ public class DashboardController {
     private final IncomeRepository incomeRepository;
     private final InvestmentRepository investmentRepository;
 
+    @Autowired
+    private UserUtil userUtil;
+
     public DashboardController(TransactionRepository transactionRepository,
                                BillRepository billRepository,
                                IncomeRepository incomeRepository,
@@ -27,8 +33,12 @@ public class DashboardController {
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<?> dashboard() {
-        long userId = 1L; // demo
+    public ResponseEntity<?> dashboard(@RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         List<Bill> bills = billRepository.findByUserId(userId);
         List<Income> incomes = incomeRepository.findByUserId(userId);
