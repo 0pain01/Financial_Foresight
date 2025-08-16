@@ -9,14 +9,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
-import { useUser } from "@/contexts/UserContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Topbar() {
-  const { user, getUserInitials } = useUser();
+  const { user, getUserInitials, logout } = useAuth();
   
   const handleLogout = () => {
-    // Implement logout logic here
-    console.log("Logging out...");
+    logout();
+    // Redirect to login page
+    window.location.href = '/login';
   };
 
   return (

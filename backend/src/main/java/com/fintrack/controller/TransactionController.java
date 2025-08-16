@@ -1,7 +1,10 @@
 package com.fintrack.controller;
 
 import com.fintrack.model.Transaction;
+import com.fintrack.model.Users;
 import com.fintrack.repository.TransactionRepository;
+import com.fintrack.util.UserUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,26 +12,38 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 public class TransactionController {
     private final TransactionRepository transactionRepository;
 
+    @Autowired
+    private UserUtil userUtil;
+
     public TransactionController(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<List<Transaction>> getTransactions() {
-        List<Transaction> transactions = transactionRepository.findByUserId(1L); // demo user
+    public ResponseEntity<List<Transaction>> getTransactions(@RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.unauthorized().build();
+        }
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
         return ResponseEntity.ok(transactions);
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.unauthorized().build();
+        }
         System.out.println("Received transaction creation request: " + transaction);
-        transaction.setUserId(1L); // demo user
+        transaction.setUserId(userId);
         transaction.setCreatedAt(LocalDateTime.now());
         Transaction savedTransaction = transactionRepository.save(transaction);
         System.out.println("Transaction saved successfully: " + savedTransaction.getId());
@@ -36,13 +51,17 @@ public class TransactionController {
     }
 
     @PutMapping("/transactions/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody Transaction transaction, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.unauthorized().build();
+        }
         System.out.println("Received transaction update request for ID: " + id);
         if (!transactionRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         transaction.setId(id);
-        transaction.setUserId(1L); // demo user
+        transaction.setUserId(userId);
         transaction.setCreatedAt(LocalDateTime.now());
         Transaction updatedTransaction = transactionRepository.save(transaction);
         System.out.println("Transaction updated successfully: " + updatedTransaction.getId());
@@ -50,7 +69,11 @@ public class TransactionController {
     }
 
     @DeleteMapping("/transactions/{id}")
-    public ResponseEntity<Map<String, String>> deleteTransaction(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteTransaction(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.unauthorized().build();
+        }
         System.out.println("Received transaction delete request for ID: " + id);
         if (!transactionRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
