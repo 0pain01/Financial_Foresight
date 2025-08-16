@@ -37,12 +37,9 @@ public class AuthController {
             String firstName = request.get("firstName");
             String lastName = request.get("lastName");
 
-            System.out.println("Registration attempt for username: " + username);
-
             // Check if username already exists
             Optional<Users> existingUser = usersRepository.findByUsername(username);
             if (existingUser.isPresent()) {
-                System.out.println("Username already exists: " + username);
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "Username already exists");
                 return ResponseEntity.badRequest().body(response);
@@ -56,9 +53,7 @@ public class AuthController {
             user.setFirstName(firstName);
             user.setLastName(lastName);
 
-            System.out.println("Creating user with username: " + username);
             Users savedUser = usersRepository.save(user);
-            System.out.println("User created successfully with ID: " + savedUser.getId());
 
             // Generate JWT token
             String token = jwtService.generateToken(savedUser);
@@ -133,28 +128,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/debug/users")
-    public ResponseEntity<?> debugUsers() {
-        try {
-            List<Users> allUsers = usersRepository.findAll();
-            Map<String, Object> response = new HashMap<>();
-            response.put("totalUsers", allUsers.size());
-            response.put("users", allUsers.stream()
-                .map(user -> {
-                    Map<String, Object> userInfo = new HashMap<>();
-                    userInfo.put("id", user.getId());
-                    userInfo.put("username", user.getUsername());
-                    userInfo.put("email", user.getEmail());
-                    return userInfo;
-                })
-                .collect(java.util.stream.Collectors.toList()));
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
+
 
     private Map<String, Object> createUserResponse(Users user) {
         Map<String, Object> userResponse = new HashMap<>();

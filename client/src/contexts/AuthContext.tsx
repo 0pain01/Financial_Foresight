@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      console.log('Attempting login for:', username);
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -65,17 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ username, password }),
       });
 
-      console.log('Login response status:', response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('Login successful:', data);
         localStorage.setItem('authToken', data.token);
         setUser(data.user);
         return true;
       } else {
         const error = await response.json();
-        console.log('Login failed:', error);
         throw new Error(error.message || 'Login failed');
       }
     } catch (error) {
@@ -86,35 +81,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (username: string, password: string, email?: string, firstName?: string, lastName?: string): Promise<boolean> => {
     try {
-      console.log('Attempting registration for:', username);
-      const requestBody = { 
-        username, 
-        password, 
-        email, 
-        firstName, 
-        lastName 
-      };
-      console.log('Request body:', requestBody);
-      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ 
+          username, 
+          password, 
+          email, 
+          firstName, 
+          lastName 
+        }),
       });
 
-      console.log('Response status:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('Registration successful:', data);
         localStorage.setItem('authToken', data.token);
         setUser(data.user);
         return true;
       } else {
         const error = await response.json();
-        console.log('Registration failed:', error);
         throw new Error(error.message || 'Registration failed');
       }
     } catch (error) {
