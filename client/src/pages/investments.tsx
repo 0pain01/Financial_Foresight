@@ -63,8 +63,11 @@ export default function InvestmentsPage() {
 
   const deleteInvestmentMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/investments/${id}`, {
+      const response = await fetch(`http://localhost:8080/api/investments/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
       });
       if (!response.ok) {
         throw new Error('Failed to delete investment');

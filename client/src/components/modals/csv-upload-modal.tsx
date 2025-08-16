@@ -21,9 +21,12 @@ export default function CSVUploadModal({ isOpen, onClose }: CSVUploadModalProps)
       const formData = new FormData();
       formData.append('csvFile', file);
       
-      const response = await fetch('/api/transactions/upload-csv', {
+      const response = await fetch('http://localhost:8080/api/transactions/upload-csv', {
         method: 'POST',
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
       });
       
       if (!response.ok) {

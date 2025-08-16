@@ -45,10 +45,11 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
 
   const updateInvestmentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch(`/api/investments/${investment.id}`, {
+      const response = await fetch(`http://localhost:8080/api/investments/${investment.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
         body: JSON.stringify(data),
       });

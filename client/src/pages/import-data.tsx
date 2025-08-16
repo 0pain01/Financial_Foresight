@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Download, AlertCircle, CheckCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
@@ -23,10 +23,12 @@ export default function ImportDataPage() {
       
       console.log("Uploading CSV file:", file.name);
       
-      const response = await fetch("/api/import/csv", {
+      const response = await fetch("http://localhost:8080/api/import/csv", {
         method: "POST",
         body: formData,
-        credentials: "include",
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
       });
       
       if (!response.ok) {

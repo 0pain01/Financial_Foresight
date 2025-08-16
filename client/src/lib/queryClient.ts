@@ -12,16 +12,29 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  console.log(`Making ${method} request to ${url}`, data);
+  const baseUrl = 'http://localhost:8080';
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
   
-  const res = await fetch(url, {
+  console.log(`Making ${method} request to ${fullUrl}`, data);
+  
+  const headers: Record<string, string> = {};
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  // Add Authorization header if token exists
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const res = await fetch(fullUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
   });
 
-  console.log(`Response status: ${res.status} for ${url}`);
+  console.log(`Response status: ${res.status} for ${fullUrl}`);
   
   if (!res.ok) {
     const text = await res.text();
@@ -39,13 +52,23 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const url = queryKey.join("/") as string;
-    console.log(`Making GET request to ${url}`);
+    const baseUrl = 'http://localhost:8080';
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
     
-    const res = await fetch(url, {
-      credentials: "include",
+    console.log(`Making GET request to ${fullUrl}`);
+    
+    const headers: Record<string, string> = {};
+    // Add Authorization header if token exists
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const res = await fetch(fullUrl, {
+      headers,
     });
 
-    console.log(`Response status: ${res.status} for ${url}`);
+    console.log(`Response status: ${res.status} for ${fullUrl}`);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
