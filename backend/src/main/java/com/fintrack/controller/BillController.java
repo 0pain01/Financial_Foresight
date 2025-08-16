@@ -2,32 +2,48 @@ package com.fintrack.controller;
 
 import com.fintrack.model.Bill;
 import com.fintrack.repository.BillRepository;
+import com.fintrack.util.UserUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class BillController {
     private final BillRepository billRepository;
 
+    @Autowired
+    private UserUtil userUtil;
+
     public BillController(BillRepository billRepository) {
         this.billRepository = billRepository;
     }
 
     @GetMapping("/bills")
-    public ResponseEntity<List<Bill>> getBills() {
-        System.out.println("Received GET /bills request");
-        List<Bill> bills = billRepository.findByUserId(1L); // demo user
+    public ResponseEntity<List<Bill>> getBills(@RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        System.out.println("Received GET /bills request for user: " + userId);
+        List<Bill> bills = billRepository.findByUserId(userId);
         System.out.println("Returning " + bills.size() + " bills");
         return ResponseEntity.ok(bills);
     }
 
     @PostMapping("/bills")
-    public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
+    public ResponseEntity<Bill> createBill(@RequestBody Bill bill, @RequestHeader("Authorization") String authHeader) {
+        Long userId = userUtil.getCurrentUserId(authHeader);
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         System.out.println("Received bill creation request: " + bill);
-        bill.setUserId(1L); // demo user
+        bill.setUserId(userId);
         if (bill.getIsRecurring() == null) {
             bill.setIsRecurring(false);
         }
@@ -40,7 +56,7 @@ public class BillController {
     }
 
     @PutMapping("/bills/{id}")
-    public ResponseEntity<Bill> updateBill(@PathVariable Long id, @RequestBody Bill bill) {
+    public ResponseEntity<Bill> updateBill(@PathVariable Long id, @RequestBody Bill bill, @RequestHeader("Authorization") String authHeader) {
         return billRepository.findById(id)
                 .map(existingBill -> {
                     if (bill.getName() != null) existingBill.setName(bill.getName());
@@ -58,8 +74,14 @@ public class BillController {
     }
 
     @DeleteMapping("/bills/{id}")
-    public ResponseEntity<?> deleteBill(@PathVariable Long id) {
-        billRepository.deleteById(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, String>> deleteBill(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+        if (billRepository.existsById(id)) {
+            billRepository.deleteById(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Bill deleted successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

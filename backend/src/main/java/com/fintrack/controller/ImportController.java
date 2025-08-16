@@ -2,6 +2,9 @@ package com.fintrack.controller;
 
 import com.fintrack.model.Transaction;
 import com.fintrack.repository.TransactionRepository;
+import com.fintrack.util.UserUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,13 +20,21 @@ import java.util.Map;
 public class ImportController {
     private final TransactionRepository transactionRepository;
 
+    @Autowired
+    private UserUtil userUtil;
+
     public ImportController(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
     @PostMapping("/import/csv")
-    public ResponseEntity<?> importCsv(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> importCsv(@RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String authHeader) {
         try {
+            Long userId = userUtil.getCurrentUserId(authHeader);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
             int imported = 0;
             int total = 0;
 
@@ -41,7 +52,7 @@ public class ImportController {
                 if (parts.length >= 4) {
                     try {
                         Transaction transaction = new Transaction();
-                        transaction.setUserId(1L); // demo user
+                        transaction.setUserId(userId);
                         
                         // Convert DD-MM-YYYY to YYYY-MM-DD format
                         String dateStr = parts[0].trim();
@@ -80,7 +91,7 @@ public class ImportController {
     }
 
     @PostMapping("/transactions/upload-csv")
-    public ResponseEntity<?> uploadCsv(@RequestParam("csvFile") MultipartFile file) {
-        return importCsv(file);
+    public ResponseEntity<?> uploadCsv(@RequestParam("csvFile") MultipartFile file, @RequestHeader("Authorization") String authHeader) {
+        return importCsv(file, authHeader);
     }
 }

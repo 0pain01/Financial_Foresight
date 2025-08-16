@@ -16,7 +16,8 @@ const investmentSchema = z.object({
   type: z.string().min(1, "Type is required"),
   shares: z.string().min(1, "Number of shares is required"),
   avgCost: z.string().min(1, "Average cost is required"),
-  currentValue: z.string().min(1, "Current value is required")
+  currentValue: z.string().min(1, "Current value is required"),
+  purchaseDate: z.string().min(1, "Purchase date is required")
 });
 
 interface AddInvestmentModalProps {
@@ -36,7 +37,8 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       type: "",
       shares: "",
       avgCost: "",
-      currentValue: ""
+      currentValue: "",
+      purchaseDate: ""
     }
   });
 
@@ -86,7 +88,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">Add Investment</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-foreground">Add Investment</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -145,7 +147,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div>
             <Label htmlFor="avgCost">Average Cost per Share</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
               <Input
                 id="avgCost"
                 type="number"
@@ -161,7 +163,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div>
             <Label htmlFor="currentValue">Current Value</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
               <Input
                 id="currentValue"
                 type="number"
@@ -172,6 +174,17 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
               />
             </div>
             {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="purchaseDate">Purchase Date</Label>
+            <Input
+              id="purchaseDate"
+              type="date"
+              {...register("purchaseDate")}
+              className={errors.purchaseDate ? "border-red-500" : ""}
+            />
+            {errors.purchaseDate && <p className="text-sm text-red-500 mt-1">{errors.purchaseDate.message}</p>}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

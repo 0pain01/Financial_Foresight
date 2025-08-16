@@ -1,0 +1,4 @@
+date,description,amount,category,type,paymentMethod
+15-01-2024,Grocery Store,-85.50,Food & Dining,expense,Credit Card
+16-01-2024,Salary,3000.00,Income,income,Direct Deposit
+17-01-2024,Gas Station,-45.00,Transportation,expense,Credit Card

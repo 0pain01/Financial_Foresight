@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart as RechartsPieChart, Cell, Pie, ScatterChart, Scatter, ZAxis } from 'recharts';
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
+import SpendingAnalysisChart from "@/components/charts/3d-bar-chart";
 
 export default function AnalyticsPage() {
   const [duration, setDuration] = useState("6months");
@@ -16,6 +17,15 @@ export default function AnalyticsPage() {
   const { data: transactions } = useQuery({
     queryKey: ["/api/transactions"],
   });
+
+  // Debug: Log transaction data
+  console.log('Transactions data:', transactions);
+  
+  // Debug: Log unique categories
+  if (transactions && Array.isArray(transactions)) {
+    const uniqueCategories = Array.from(new Set(transactions.map((t: any) => t.category)));
+    console.log('Unique categories in data:', uniqueCategories);
+  }
 
   const { data: bills } = useQuery({
     queryKey: ["/api/bills"],
@@ -31,7 +41,7 @@ export default function AnalyticsPage() {
 
   // Calculate spending trends based on duration
   const calculateSpendingTrends = () => {
-    if (!transactions) return [];
+    if (!transactions || !Array.isArray(transactions)) return [];
     
     const now = new Date();
     let monthsBack = 6; // default
@@ -79,7 +89,7 @@ export default function AnalyticsPage() {
 
   // Calculate category spending
   const calculateCategorySpending = () => {
-    if (!transactions) return [];
+    if (!transactions || !Array.isArray(transactions)) return [];
     
     const categoryData = transactions.reduce((acc: any, transaction: any) => {
       if (transaction.type === 'expense') {
@@ -97,7 +107,7 @@ export default function AnalyticsPage() {
 
   // Calculate budget progress
   const calculateBudgetProgress = () => {
-    if (!budgets || !transactions) return [];
+    if (!budgets || !Array.isArray(budgets) || !transactions || !Array.isArray(transactions)) return [];
     
     return budgets.map((budget: any) => {
       const spent = transactions
@@ -122,6 +132,51 @@ export default function AnalyticsPage() {
 
   const pieColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
+  // Prepare 3D chart data
+  const prepare3DChartData = () => {
+    if (!transactions || !Array.isArray(transactions)) return [];
+    
+    const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+    
+    // Get actual years from transaction data
+    const actualYears = Array.from(new Set(transactions.map((t: any) => new Date(t.date).getFullYear()))).sort();
+    console.log('Actual years in data:', actualYears);
+    
+    // Use actual years if available, otherwise use default range
+    const years = actualYears.length > 0 ? actualYears : [2021, 2022, 2023, 2024, 2025];
+    console.log('Using years for 3D chart:', years);
+    
+    const data = [];
+    
+    for (const category of categories) {
+      for (const year of years) {
+        const yearTransactions = transactions.filter((t: any) => {
+          const transactionYear = new Date(t.date).getFullYear();
+          return t.category === category && transactionYear === year && t.type === 'expense';
+        });
+        
+        const totalAmount = yearTransactions.reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+        
+        data.push({
+          category,
+          year,
+          amount: totalAmount
+        });
+      }
+    }
+    
+    // Return empty array if no real data exists
+    if (data.every(d => d.amount === 0)) {
+      console.log('No transaction data found for 3D chart');
+      return [];
+    }
+    
+    console.log('3D Chart Data:', data);
+    return data;
+  };
+
+  const threeDChartData = prepare3DChartData();
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -130,7 +185,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex bg-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Topbar />
@@ -167,8 +222,8 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Total Balance</p>
-                <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(dashboardData?.totalBalance || 0)}
+                                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency((dashboardData as any)?.totalBalance || 0)}
                     </p>
                   </div>
                 </div>
@@ -183,8 +238,8 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Monthly Income</p>
-                <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(dashboardData?.monthlyIncome || 0)}
+                                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency((dashboardData as any)?.monthlyIncome || 0)}
                     </p>
                   </div>
                 </div>
@@ -199,8 +254,8 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Monthly Expenses</p>
-                <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(dashboardData?.monthlyExpenses || 0)}
+                                    <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency((dashboardData as any)?.monthlyExpenses || 0)}
                     </p>
                   </div>
                 </div>
@@ -215,9 +270,9 @@ export default function AnalyticsPage() {
                   </div>
                   <div>
                                     <p className="text-sm font-medium text-muted-foreground">Savings Rate</p>
-                <p className="text-2xl font-bold text-foreground">
+                                    <p className="text-2xl font-bold text-foreground">
                       {dashboardData ? 
-                        Math.round(((dashboardData.monthlyIncome - dashboardData.monthlyExpenses) / dashboardData.monthlyIncome) * 100) : 0}%
+                        Math.round((((dashboardData as any).monthlyIncome - (dashboardData as any).monthlyExpenses) / (dashboardData as any).monthlyIncome) * 100) : 0}%
                     </p>
                   </div>
                 </div>
@@ -280,54 +335,26 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* 3D Spending Analysis */}
+          {/* Spending Analysis Charts */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="mr-2 h-5 w-5" />
-                3D Spending Analysis (All Time)
+                Spending Analysis by Category and Year
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ScatterChart>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" dataKey="amount" name="Amount" />
-                  <YAxis type="number" dataKey="categoryIndex" name="Category" />
-                  <ZAxis type="number" dataKey="date" name="Date" />
-                  <Tooltip 
-                    cursor={{ strokeDasharray: '3 3' }}
-                    formatter={(value: any, name: string, props: any) => {
-                      if (name === 'categoryIndex') {
-                        const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-                        return [categories[value] || "Unknown", "Category"];
-                      }
-                      if (name === 'date') {
-                        return [new Date(value).toLocaleDateString(), "Date"];
-                      }
-                      if (name === 'amount') {
-                        return [`$${parseFloat(value).toFixed(2)}`, "Amount"];
-                      }
-                      return [value, name];
-                    }}
-                  />
-                  <Scatter 
-                    name="Transactions" 
-                    data={transactions?.map((t: any, index: number) => {
-                      const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
-                      const categoryIndex = categories.indexOf(t.category);
-                      return {
-                        amount: parseFloat(t.amount),
-                        categoryIndex: categoryIndex >= 0 ? categoryIndex : 8, // Default to "Other"
-                        date: new Date(t.date).getTime(),
-                        type: t.type,
-                        description: t.description
-                      };
-                    }) || []} 
-                    fill="#8884d8" 
-                  />
-                </ScatterChart>
-              </ResponsiveContainer>
+              <div className="flex justify-center">
+                <SpendingAnalysisChart 
+                  data={threeDChartData} 
+                  width={1200} 
+                  height={500} 
+                />
+              </div>
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                <p>Left Chart: Cost vs Year | Right Chart: Category vs Cost</p>
+                <p>Hover over points to see detailed information</p>
+              </div>
             </CardContent>
           </Card>
 
@@ -338,7 +365,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {budgetProgress.length > 0 ? (
+                {budgetProgress && budgetProgress.length > 0 ? (
                   budgetProgress.map((budget: any) => (
                     <div key={budget.id} className="space-y-2">
                       <div className="flex justify-between items-center">
@@ -348,7 +375,7 @@ export default function AnalyticsPage() {
                         </Badge>
                       </div>
                       <Progress value={budget.progress} className="h-2" />
-                      <div className="flex justify-between text-sm text-gray-600">
+                      <div className="flex justify-between text-sm text-muted-foreground">
                         <span>{budget.progress.toFixed(1)}% used</span>
                         <span>{formatCurrency(budget.remaining)} remaining</span>
                       </div>
@@ -356,7 +383,7 @@ export default function AnalyticsPage() {
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">No budgets set yet. Create your first budget to track spending!</p>
+                    <p className="text-muted-foreground">No budgets set yet. Create your first budget to track spending!</p>
                   </div>
                 )}
               </div>
