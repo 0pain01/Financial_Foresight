@@ -30,24 +30,16 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      const success = await login(username, password);
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Login successful!"
-        });
-        setLocation('/');
-      } else {
-        toast({
-          title: "Error",
-          description: "Invalid username or password",
-          variant: "destructive"
-        });
-      }
+      await login(username, password);
+      toast({
+        title: "Success",
+        description: "Login successful!"
+      });
+      setLocation('/');
     } catch (error) {
       toast({
         title: "Error",
-        description: "Login failed. Please try again.",
+        description: error instanceof Error ? error.message : "Login failed. Please try again.",
         variant: "destructive"
       });
     } finally {

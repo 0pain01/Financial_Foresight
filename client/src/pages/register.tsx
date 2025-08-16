@@ -61,7 +61,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     
     try {
-      const success = await register(
+      await register(
         formData.username, 
         formData.password, 
         formData.email || undefined,
@@ -69,23 +69,15 @@ export default function RegisterPage() {
         formData.lastName || undefined
       );
       
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Account created successfully!"
-        });
-        setLocation('/');
-      } else {
-        toast({
-          title: "Error",
-          description: "Registration failed. Username might already exist.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Account created successfully!"
+      });
+      setLocation('/');
     } catch (error) {
       toast({
         title: "Error",
-        description: "Registration failed. Please try again.",
+        description: error instanceof Error ? error.message : "Registration failed. Please try again.",
         variant: "destructive"
       });
     } finally {

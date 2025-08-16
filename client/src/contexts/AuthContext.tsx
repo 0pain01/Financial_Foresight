@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = localStorage.getItem('authToken');
       if (token) {
-        const response = await fetch('/api/auth/me', {
+                  const response = await fetch('http://localhost:8081/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('http://localhost:8081/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,18 +70,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         return true;
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        let errorMessage = 'Login failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (parseError) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || `HTTP ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Cannot connect to server. Please check if the backend is running.');
+      }
+      throw error;
     }
   };
 
   const register = async (username: string, password: string, email?: string, firstName?: string, lastName?: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('http://localhost:8081/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,12 +111,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         return true;
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Registration failed');
+        let errorMessage = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (parseError) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || `HTTP ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Registration error:', error);
-      return false;
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Cannot connect to server. Please check if the backend is running.');
+      }
+      throw error;
     }
   };
 
