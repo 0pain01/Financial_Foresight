@@ -4,11 +4,13 @@ import com.fintrack.model.Users;
 import com.fintrack.repository.UsersRepository;
 import com.fintrack.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,8 +37,12 @@ public class AuthController {
             String firstName = request.get("firstName");
             String lastName = request.get("lastName");
 
+            System.out.println("Registration attempt for username: " + username);
+
             // Check if username already exists
-            if (usersRepository.findByUsername(username).isPresent()) {
+            Optional<Users> existingUser = usersRepository.findByUsername(username);
+            if (existingUser.isPresent()) {
+                System.out.println("Username already exists: " + username);
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "Username already exists");
                 return ResponseEntity.badRequest().body(response);
@@ -50,7 +56,9 @@ public class AuthController {
             user.setFirstName(firstName);
             user.setLastName(lastName);
 
+            System.out.println("Creating user with username: " + username);
             Users savedUser = usersRepository.save(user);
+            System.out.println("User created successfully with ID: " + savedUser.getId());
 
             // Generate JWT token
             String token = jwtService.generateToken(savedUser);
@@ -108,7 +116,7 @@ public class AuthController {
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return ResponseEntity.unauthorized().build();
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             String token = authHeader.substring(7);
@@ -116,12 +124,35 @@ public class AuthController {
 
             Optional<Users> userOpt = usersRepository.findByUsername(username);
             if (userOpt.isEmpty()) {
-                return ResponseEntity.unauthorized().build();
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             return ResponseEntity.ok(createUserResponse(userOpt.get()));
         } catch (Exception e) {
-            return ResponseEntity.unauthorized().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @GetMapping("/debug/users")
+    public ResponseEntity<?> debugUsers() {
+        try {
+            List<Users> allUsers = usersRepository.findAll();
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalUsers", allUsers.size());
+            response.put("users", allUsers.stream()
+                .map(user -> {
+                    Map<String, Object> userInfo = new HashMap<>();
+                    userInfo.put("id", user.getId());
+                    userInfo.put("username", user.getUsername());
+                    userInfo.put("email", user.getEmail());
+                    return userInfo;
+                })
+                .collect(java.util.stream.Collectors.toList()));
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 

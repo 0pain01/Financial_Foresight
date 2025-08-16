@@ -5,6 +5,7 @@ import com.fintrack.model.Users;
 import com.fintrack.repository.TransactionRepository;
 import com.fintrack.util.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class TransactionController {
     public ResponseEntity<List<Transaction>> getTransactions(@RequestHeader("Authorization") String authHeader) {
         Long userId = userUtil.getCurrentUserId(authHeader);
         if (userId == null) {
-            return ResponseEntity.unauthorized().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         return ResponseEntity.ok(transactions);
@@ -40,7 +41,7 @@ public class TransactionController {
     public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction, @RequestHeader("Authorization") String authHeader) {
         Long userId = userUtil.getCurrentUserId(authHeader);
         if (userId == null) {
-            return ResponseEntity.unauthorized().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         System.out.println("Received transaction creation request: " + transaction);
         transaction.setUserId(userId);
@@ -54,7 +55,7 @@ public class TransactionController {
     public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody Transaction transaction, @RequestHeader("Authorization") String authHeader) {
         Long userId = userUtil.getCurrentUserId(authHeader);
         if (userId == null) {
-            return ResponseEntity.unauthorized().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         System.out.println("Received transaction update request for ID: " + id);
         if (!transactionRepository.existsById(id)) {
@@ -72,7 +73,7 @@ public class TransactionController {
     public ResponseEntity<Map<String, String>> deleteTransaction(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
         Long userId = userUtil.getCurrentUserId(authHeader);
         if (userId == null) {
-            return ResponseEntity.unauthorized().build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         System.out.println("Received transaction delete request for ID: " + id);
         if (!transactionRepository.existsById(id)) {
