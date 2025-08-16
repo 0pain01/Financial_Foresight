@@ -6,9 +6,13 @@ const getAuthHeaders = () => {
   };
 };
 
+const getBaseUrl = () => {
+  return 'http://localhost:8080';
+};
+
 export const api = {
   get: async (url: string) => {
-    const response = await fetch(url, {
+    const response = await fetch(`${getBaseUrl()}${url}`, {
       headers: getAuthHeaders()
     });
     if (!response.ok) {
@@ -18,7 +22,7 @@ export const api = {
   },
 
   post: async (url: string, data: any) => {
-    const response = await fetch(url, {
+    const response = await fetch(`${getBaseUrl()}${url}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(data)
@@ -30,7 +34,7 @@ export const api = {
   },
 
   put: async (url: string, data: any) => {
-    const response = await fetch(url, {
+    const response = await fetch(`${getBaseUrl()}${url}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(data)
@@ -42,7 +46,7 @@ export const api = {
   },
 
   delete: async (url: string) => {
-    const response = await fetch(url, {
+    const response = await fetch(`${getBaseUrl()}${url}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
