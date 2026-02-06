@@ -174,6 +174,12 @@ public class InsightsController {
                 "fiveYears", projectedWealthAfterYears(investments, currentSavings, 5),
                 "tenYears", projectedWealthAfterYears(investments, currentSavings, 10)
         ));
+        projection.put("pfInterestRate", pfInterestRate);
+        projection.put("pfPrincipal", pfPrincipal);
+        projection.put("pfCurrentCompanyTotal", totalPfCurrentCompany);
+        projection.put("pfPreviousCompanyTotal", totalPfPreviousCompany);
+        projection.put("pfInferredCurrentAge", inferredCurrentAge);
+        projection.put("pfRetirementProjection", pfRetirementProjection);
 
         projection.put("pfInterestRate", pfInterestRate);
         projection.put("pfPrincipal", pfPrincipal);
@@ -220,6 +226,8 @@ public class InsightsController {
 
         double currentAssets = Math.max(0, monthlySavings) + totalInvestments;
         double currentDebts = Math.max(0, monthlyBills);
+        double currentAssets = currentSavings + totalInvestments;
+        double currentDebts = 0; // No debt tracking in current schema
 
         Map<String, Object> projection = new LinkedHashMap<>();
         projection.put("currentAssets", currentAssets);

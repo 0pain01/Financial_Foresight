@@ -33,6 +33,18 @@ const investmentSchema = z.object({
     if (!data.pfCompanyAmount) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCompanyAmount"], message: "Company PF amount is required" });
     }
+  shares: z.string().min(1, "Value is required"),
+  avgCost: z.string().min(1, "Value is required"),
+  currentValue: z.string().min(1, "Current value is required"),
+  purchaseDate: z.string().min(1, "Purchase date is required"),
+  pfCurrentAge: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.type === "pf" && !data.pfCurrentAge) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["pfCurrentAge"],
+      message: "Current age is required for PF projection",
+    });
   }
 });
 
@@ -74,6 +86,10 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
         avgCost: data.type === "pf" ? "0" : data.avgCost,
         pfCurrentCompany: data.type === "pf" ? (isCurrentCompany ? data.pfCompanyAmount : "0") : null,
         pfPreviousCompany: data.type === "pf" ? (isCurrentCompany ? "0" : data.pfCompanyAmount) : null,
+      const payload = {
+        ...data,
+        pfCurrentCompany: data.type === "pf" ? data.avgCost : null,
+        pfPreviousCompany: data.type === "pf" ? data.shares : null,
       };
       return apiRequest("POST", "/api/investments", payload);
     },
@@ -87,6 +103,11 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
     },
     onError: (error) => {
       toast({ title: "Error", description: `Failed to add investment: ${error.message}`, variant: "destructive" });
+      toast({
+        title: "Error",
+        description: `Failed to add investment: ${error.message}`,
+        variant: "destructive"
+      });
     }
   });
 
@@ -115,12 +136,24 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div>
             <Label htmlFor="symbol">Symbol</Label>
             <Input id="symbol" placeholder={isPfInvestment ? "e.g., UAN" : "e.g., AAPL, NIFTYBEES"} {...register("symbol")} className={errors.symbol ? "border-red-500" : ""} />
+            <Input
+              id="symbol"
+              placeholder={isPfInvestment ? "e.g., UAN" : "e.g., AAPL, GOOGL"}
+              {...register("symbol")}
+              className={errors.symbol ? "border-red-500" : ""}
+            />
             {errors.symbol && <p className="text-sm text-red-500 mt-1">{errors.symbol.message}</p>}
           </div>
 
           <div>
             <Label htmlFor="name">Investment Name</Label>
             <Input id="name" placeholder={isPfInvestment ? "e.g., Employee Provident Fund" : "e.g., Apple Inc."} {...register("name")} className={errors.name ? "border-red-500" : ""} />
+            <Input
+              id="name"
+              placeholder={isPfInvestment ? "e.g., Employee Provident Fund" : "e.g., Apple Inc."}
+              {...register("name")}
+              className={errors.name ? "border-red-500" : ""}
+            />
             {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>}
           </div>
 
@@ -192,6 +225,66 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
               </div>
             </>
           )}
+          <div>
+            <Label htmlFor="shares">{isPfInvestment ? "Previous Company PF Amount" : "Number of Shares"}</Label>
+            <Input
+              id="shares"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              {...register("shares")}
+              className={errors.shares ? "border-red-500" : ""}
+            />
+            {errors.shares && <p className="text-sm text-red-500 mt-1">{errors.shares.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="avgCost">{isPfInvestment ? "Current Company PF Amount" : "Average Cost per Share"}</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
+              <Input
+                id="avgCost"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                className={`pl-8 ${errors.avgCost ? "border-red-500" : ""}`}
+                {...register("avgCost")}
+              />
+            </div>
+            {errors.avgCost && <p className="text-sm text-red-500 mt-1">{errors.avgCost.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="currentValue">{isPfInvestment ? "Current PF Balance" : "Current Value"}</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
+              <Input
+                id="currentValue"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                className={`pl-8 ${errors.currentValue ? "border-red-500" : ""}`}
+                {...register("currentValue")}
+              />
+            </div>
+            {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
+          </div>
+
+          {isPfInvestment && (
+            <div>
+              <Label htmlFor="pfCurrentAge">Current Age</Label>
+              <Input
+                id="pfCurrentAge"
+                type="number"
+                min="18"
+                max="60"
+                placeholder="e.g., 32"
+                {...register("pfCurrentAge")}
+                className={errors.pfCurrentAge ? "border-red-500" : ""}
+              />
+              {errors.pfCurrentAge && <p className="text-sm text-red-500 mt-1">{errors.pfCurrentAge.message}</p>}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="purchaseDate">Purchase Date</Label>
@@ -202,6 +295,14 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={addInvestmentMutation.isPending} className="bg-finance-blue hover:bg-blue-700">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={addInvestmentMutation.isPending}
+              className="bg-finance-blue hover:bg-blue-700"
+            >
               {addInvestmentMutation.isPending ? "Adding..." : "Add Investment"}
             </Button>
           </div>
