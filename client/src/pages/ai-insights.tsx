@@ -128,7 +128,6 @@ export default function InsightsPage() {
             </CardContent>
           </Card>
 
-          {/* Investment Recommendations */}
           <Card>
             <CardHeader><CardTitle className="flex items-center"><Brain className="mr-2 h-5 w-5" />Personalized Insights</CardTitle></CardHeader>
             <CardContent>

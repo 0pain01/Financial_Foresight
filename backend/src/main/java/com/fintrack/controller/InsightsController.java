@@ -188,6 +188,13 @@ public class InsightsController {
         projection.put("pfInferredCurrentAge", inferredCurrentAge);
         projection.put("pfRetirementProjection", pfRetirementProjection);
 
+        projection.put("pfInterestRate", pfInterestRate);
+        projection.put("pfPrincipal", pfPrincipal);
+        projection.put("pfCurrentCompanyTotal", totalPfCurrentCompany);
+        projection.put("pfPreviousCompanyTotal", totalPfPreviousCompany);
+        projection.put("pfInferredCurrentAge", inferredCurrentAge);
+        projection.put("pfRetirementProjection", pfRetirementProjection);
+
         return ResponseEntity.ok(projection);
     }
 
