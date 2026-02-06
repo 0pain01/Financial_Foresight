@@ -65,6 +65,9 @@ public class InvestmentController {
                     if (investment.getShares() != null) existingInvestment.setShares(investment.getShares());
                     if (investment.getAvgCost() != null) existingInvestment.setAvgCost(investment.getAvgCost());
                     if (investment.getCurrentValue() != null) existingInvestment.setCurrentValue(investment.getCurrentValue());
+                    if (investment.getPfCurrentCompany() != null) existingInvestment.setPfCurrentCompany(investment.getPfCurrentCompany());
+                    if (investment.getPfPreviousCompany() != null) existingInvestment.setPfPreviousCompany(investment.getPfPreviousCompany());
+                    if (investment.getPfCurrentAge() != null) existingInvestment.setPfCurrentAge(investment.getPfCurrentAge());
                     return ResponseEntity.ok(investmentRepository.save(existingInvestment));
                 })
                 .orElse(ResponseEntity.notFound().build());

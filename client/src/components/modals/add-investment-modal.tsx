@@ -15,10 +15,19 @@ const investmentSchema = z.object({
   symbol: z.string().min(1, "Symbol is required"),
   name: z.string().min(1, "Name is required"),
   type: z.string().min(1, "Type is required"),
-  shares: z.string().min(1, "Number of shares is required"),
-  avgCost: z.string().min(1, "Average cost is required"),
+  shares: z.string().min(1, "Value is required"),
+  avgCost: z.string().min(1, "Value is required"),
   currentValue: z.string().min(1, "Current value is required"),
-  purchaseDate: z.string().min(1, "Purchase date is required")
+  purchaseDate: z.string().min(1, "Purchase date is required"),
+  pfCurrentAge: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.type === "pf" && !data.pfCurrentAge) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["pfCurrentAge"],
+      message: "Current age is required for PF projection",
+    });
+  }
 });
 
 interface AddInvestmentModalProps {
@@ -31,7 +40,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
   const queryClient = useQueryClient();
   const { getCurrencySymbol } = useCurrency();
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<z.infer<typeof investmentSchema>>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<z.infer<typeof investmentSchema>>({
     resolver: zodResolver(investmentSchema),
     defaultValues: {
       symbol: "",
@@ -40,19 +49,24 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       shares: "",
       avgCost: "",
       currentValue: "",
-      purchaseDate: ""
+      purchaseDate: "",
+      pfCurrentAge: "",
     }
   });
 
+  const selectedType = watch("type");
+  const isPfInvestment = selectedType === "pf";
+
   const addInvestmentMutation = useMutation({
     mutationFn: async (data: z.infer<typeof investmentSchema>) => {
-      console.log("Submitting investment data:", data);
-      const response = await apiRequest("POST", "/api/investments", data);
-      console.log("Investment submission response:", response);
-      return response;
+      const payload = {
+        ...data,
+        pfCurrentCompany: data.type === "pf" ? data.avgCost : null,
+        pfPreviousCompany: data.type === "pf" ? data.shares : null,
+      };
+      return apiRequest("POST", "/api/investments", payload);
     },
     onSuccess: () => {
-      console.log("Investment added successfully");
       queryClient.invalidateQueries({ queryKey: ["/api/investments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       toast({
@@ -63,7 +77,6 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       onClose();
     },
     onError: (error) => {
-      console.error("Failed to add investment:", error);
       toast({
         title: "Error",
         description: `Failed to add investment: ${error.message}`,
@@ -89,17 +102,17 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-foreground">Add Investment</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="symbol">Symbol</Label>
             <Input
               id="symbol"
-              placeholder="e.g., AAPL, GOOGL"
+              placeholder={isPfInvestment ? "e.g., UAN" : "e.g., AAPL, GOOGL"}
               {...register("symbol")}
               className={errors.symbol ? "border-red-500" : ""}
             />
@@ -110,7 +123,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
             <Label htmlFor="name">Investment Name</Label>
             <Input
               id="name"
-              placeholder="e.g., Apple Inc."
+              placeholder={isPfInvestment ? "e.g., Employee Provident Fund" : "e.g., Apple Inc."}
               {...register("name")}
               className={errors.name ? "border-red-500" : ""}
             />
@@ -135,7 +148,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           </div>
 
           <div>
-            <Label htmlFor="shares">Number of Shares</Label>
+            <Label htmlFor="shares">{isPfInvestment ? "Previous Company PF Amount" : "Number of Shares"}</Label>
             <Input
               id="shares"
               type="number"
@@ -148,7 +161,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           </div>
 
           <div>
-            <Label htmlFor="avgCost">Average Cost per Share</Label>
+            <Label htmlFor="avgCost">{isPfInvestment ? "Current Company PF Amount" : "Average Cost per Share"}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
               <Input
@@ -164,7 +177,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           </div>
 
           <div>
-            <Label htmlFor="currentValue">Current Value</Label>
+            <Label htmlFor="currentValue">{isPfInvestment ? "Current PF Balance" : "Current Value"}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
               <Input
@@ -178,6 +191,22 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
             </div>
             {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
           </div>
+
+          {isPfInvestment && (
+            <div>
+              <Label htmlFor="pfCurrentAge">Current Age</Label>
+              <Input
+                id="pfCurrentAge"
+                type="number"
+                min="18"
+                max="60"
+                placeholder="e.g., 32"
+                {...register("pfCurrentAge")}
+                className={errors.pfCurrentAge ? "border-red-500" : ""}
+              />
+              {errors.pfCurrentAge && <p className="text-sm text-red-500 mt-1">{errors.pfCurrentAge.message}</p>}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="purchaseDate">Purchase Date</Label>
@@ -194,8 +223,8 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={addInvestmentMutation.isPending}
               className="bg-finance-blue hover:bg-blue-700"
             >
