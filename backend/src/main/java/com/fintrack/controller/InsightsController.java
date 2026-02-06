@@ -43,36 +43,28 @@ public class InsightsController {
         List<Bill> bills = billRepository.findByUserId(userId);
         List<Income> incomes = incomeRepository.findByUserId(userId);
 
-        // Calculate total income from income records (recurring income)
         double totalIncomeFromRecords = incomes.stream()
                 .filter(income -> income.getIsActive() != null && income.getIsActive())
                 .mapToDouble(i -> parse(i.getAmount())).sum();
 
-        // Calculate total income from income-type transactions
         double totalIncomeFromTransactions = transactions.stream()
                 .filter(t -> Objects.equals(t.getType(), "income"))
                 .mapToDouble(t -> parse(t.getAmount())).sum();
 
-        // Total income = income records + income transactions
         double totalIncome = totalIncomeFromRecords + totalIncomeFromTransactions;
 
-        // Calculate total expenses from transactions (type = "expense")
         double totalTransactionExpenses = transactions.stream()
                 .filter(t -> Objects.equals(t.getType(), "expense"))
                 .mapToDouble(t -> parse(t.getAmount())).sum();
 
-        // Calculate total expenses from bills (bills are always expenses)
         double totalBillExpenses = bills.stream()
                 .mapToDouble(b -> parse(b.getAmount())).sum();
 
-        // Total expenses = transactions + bills
         double totalExpenses = totalTransactionExpenses + totalBillExpenses;
-
         double currentSavings = totalIncome - totalExpenses;
 
         Map<String, Object> insights = new LinkedHashMap<>();
 
-        // Calculate savings rate (avoid division by zero)
         double savingsRate = 0.0;
         if (totalIncome > 0) {
             savingsRate = (currentSavings / totalIncome) * 100;
@@ -81,7 +73,7 @@ public class InsightsController {
         insights.put("currentSavingsRate", savingsRate);
         insights.put("projectedMonthlySavings", currentSavings);
         insights.put("projectedAnnualSavings", currentSavings * 12);
-        insights.put("recommendedInvestmentAmount", currentSavings * 0.3);
+        insights.put("recommendedInvestmentAmount", Math.max(0, currentSavings * 0.3));
         insights.put("totalIncome", totalIncome);
         insights.put("incomeFromRecords", totalIncomeFromRecords);
         insights.put("incomeFromTransactions", totalIncomeFromTransactions);
@@ -89,14 +81,14 @@ public class InsightsController {
         insights.put("transactionExpenses", totalTransactionExpenses);
         insights.put("billExpenses", totalBillExpenses);
         insights.put("insights", Arrays.asList(
-                "Your spending on Food & Dining is 15% above average",
-                "Consider setting up automatic savings transfers",
-                "Your emergency fund should cover 3-6 months of expenses"
+                "Track monthly debt obligations to improve future projections",
+                "Keep PF, MF/ETF, and FD entries up to date for better wealth forecasting",
+                "A positive monthly savings trend strengthens long-term retirement outcomes"
         ));
         insights.put("investmentRecommendations", Arrays.asList(
-                "Consider increasing your 401(k) contribution",
-                "Diversify your investment portfolio",
-                "Look into index funds for long-term growth"
+                "Prioritize diversified long-term funds (ETF/MF) for compounding",
+                "Maintain PF continuity while changing companies",
+                "Use recurring savings to reduce high-cost obligations first"
         ));
 
         return ResponseEntity.ok(insights);
@@ -114,32 +106,26 @@ public class InsightsController {
         List<Income> incomes = incomeRepository.findByUserId(userId);
         List<Investment> investments = investmentRepository.findByUserId(userId);
 
-        // Calculate total income from income records (recurring income)
         double totalIncomeFromRecords = incomes.stream()
                 .filter(income -> income.getIsActive() != null && income.getIsActive())
                 .mapToDouble(i -> parse(i.getAmount())).sum();
 
-        // Calculate total income from income-type transactions
         double totalIncomeFromTransactions = transactions.stream()
                 .filter(t -> Objects.equals(t.getType(), "income"))
                 .mapToDouble(t -> parse(t.getAmount())).sum();
 
-        // Total income = income records + income transactions
         double totalIncome = totalIncomeFromRecords + totalIncomeFromTransactions;
 
-        // Calculate total expenses from transactions (type = "expense")
         double totalTransactionExpenses = transactions.stream()
                 .filter(t -> Objects.equals(t.getType(), "expense"))
                 .mapToDouble(t -> parse(t.getAmount())).sum();
 
-        // Calculate total expenses from bills (bills are always expenses)
         double totalBillExpenses = bills.stream()
                 .mapToDouble(b -> parse(b.getAmount())).sum();
 
-        // Total expenses = transactions + bills
         double totalExpenses = totalTransactionExpenses + totalBillExpenses;
-
         double currentSavings = totalIncome - totalExpenses;
+
         double totalInvestments = investments.stream()
                 .mapToDouble(i -> parse(nullToZero(i.getCurrentValue()))).sum();
 
@@ -182,11 +168,19 @@ public class InsightsController {
         projection.put("totalExpenses", totalExpenses);
         projection.put("transactionExpenses", totalTransactionExpenses);
         projection.put("billExpenses", totalBillExpenses);
+
         projection.put("futureNetWorth", Map.of(
-                "oneYear", currentSavings * 12 + totalInvestments * 1.07,
-                "fiveYears", currentSavings * 60 + totalInvestments * 1.4,
-                "tenYears", currentSavings * 120 + totalInvestments * 1.97
+                "oneYear", projectedWealthAfterYears(investments, currentSavings, 1),
+                "fiveYears", projectedWealthAfterYears(investments, currentSavings, 5),
+                "tenYears", projectedWealthAfterYears(investments, currentSavings, 10)
         ));
+        projection.put("pfInterestRate", pfInterestRate);
+        projection.put("pfPrincipal", pfPrincipal);
+        projection.put("pfCurrentCompanyTotal", totalPfCurrentCompany);
+        projection.put("pfPreviousCompanyTotal", totalPfPreviousCompany);
+        projection.put("pfInferredCurrentAge", inferredCurrentAge);
+        projection.put("pfRetirementProjection", pfRetirementProjection);
+
         projection.put("pfInterestRate", pfInterestRate);
         projection.put("pfPrincipal", pfPrincipal);
         projection.put("pfCurrentCompanyTotal", totalPfCurrentCompany);
@@ -209,67 +203,102 @@ public class InsightsController {
         List<Income> incomes = incomeRepository.findByUserId(userId);
         List<Investment> investments = investmentRepository.findByUserId(userId);
 
-        // Calculate total income from income records (recurring income)
-        double totalIncomeFromRecords = incomes.stream()
+        double monthlyIncome = incomes.stream()
                 .filter(income -> income.getIsActive() != null && income.getIsActive())
                 .mapToDouble(i -> parse(i.getAmount())).sum();
 
-        // Calculate total income from income-type transactions
-        double totalIncomeFromTransactions = transactions.stream()
+        double additionalIncome = transactions.stream()
                 .filter(t -> Objects.equals(t.getType(), "income"))
                 .mapToDouble(t -> parse(t.getAmount())).sum();
 
-        // Total income = income records + income transactions
-        double totalIncome = totalIncomeFromRecords + totalIncomeFromTransactions;
-
-        // Calculate total expenses from transactions (type = "expense")
-        double totalTransactionExpenses = transactions.stream()
+        double monthlyExpenses = transactions.stream()
                 .filter(t -> Objects.equals(t.getType(), "expense"))
                 .mapToDouble(t -> parse(t.getAmount())).sum();
 
-        // Calculate total expenses from bills (bills are always expenses)
-        double totalBillExpenses = bills.stream()
+        double monthlyBills = bills.stream()
+                .filter(b -> !"paid".equalsIgnoreCase(Optional.ofNullable(b.getStatus()).orElse("")))
                 .mapToDouble(b -> parse(b.getAmount())).sum();
 
-        // Total expenses = transactions + bills
-        double totalExpenses = totalTransactionExpenses + totalBillExpenses;
+        double monthlySavings = (monthlyIncome + additionalIncome) - (monthlyExpenses + monthlyBills);
 
-        double currentSavings = totalIncome - totalExpenses;
         double totalInvestments = investments.stream()
                 .mapToDouble(i -> parse(nullToZero(i.getCurrentValue()))).sum();
+
+        double currentAssets = Math.max(0, monthlySavings) + totalInvestments;
+        double currentDebts = Math.max(0, monthlyBills);
         double currentAssets = currentSavings + totalInvestments;
         double currentDebts = 0; // No debt tracking in current schema
 
         Map<String, Object> projection = new LinkedHashMap<>();
         projection.put("currentAssets", currentAssets);
         projection.put("currentDebts", currentDebts);
+        projection.put("monthlyDebtObligation", monthlyBills);
+        projection.put("monthlySavings", monthlySavings);
 
-        // Calculate savings rate (avoid division by zero)
         double savingsRate = 0.0;
-        if (totalIncome > 0) {
-            savingsRate = (currentSavings / totalIncome) * 100;
+        double denominator = monthlyIncome + additionalIncome;
+        if (denominator > 0) {
+            savingsRate = (monthlySavings / denominator) * 100;
         }
         projection.put("currentSavingsRate", savingsRate);
 
-        projection.put("totalIncome", totalIncome);
-        projection.put("incomeFromRecords", totalIncomeFromRecords);
-        projection.put("incomeFromTransactions", totalIncomeFromTransactions);
-        projection.put("totalExpenses", totalExpenses);
-        projection.put("transactionExpenses", totalTransactionExpenses);
-        projection.put("billExpenses", totalBillExpenses);
-        projection.put("currentSavings", currentSavings);
+        projection.put("totalIncome", monthlyIncome + additionalIncome);
+        projection.put("incomeFromRecords", monthlyIncome);
+        projection.put("incomeFromTransactions", additionalIncome);
+        projection.put("totalExpenses", monthlyExpenses + monthlyBills);
+        projection.put("transactionExpenses", monthlyExpenses);
+        projection.put("billExpenses", monthlyBills);
+        projection.put("currentSavings", monthlySavings);
+
         projection.put("projectedNetWorth", Map.of(
-                "oneYear", currentAssets * 1.07,
-                "fiveYears", currentAssets * 1.4,
-                "tenYears", currentAssets * 1.97
+                "oneYear", projectedNetWorthAfterYears(investments, monthlySavings, currentDebts, 1),
+                "fiveYears", projectedNetWorthAfterYears(investments, monthlySavings, currentDebts, 5),
+                "tenYears", projectedNetWorthAfterYears(investments, monthlySavings, currentDebts, 10)
         ));
         projection.put("futureNetWorth", Map.of(
-                "oneYear", currentAssets * 1.07,
-                "fiveYears", currentAssets * 1.4,
-                "tenYears", currentAssets * 1.97
+                "oneYear", projectedNetWorthAfterYears(investments, monthlySavings, currentDebts, 1),
+                "fiveYears", projectedNetWorthAfterYears(investments, monthlySavings, currentDebts, 5),
+                "tenYears", projectedNetWorthAfterYears(investments, monthlySavings, currentDebts, 10)
+        ));
+        projection.put("futureDebtProjection", Map.of(
+                "oneYear", currentDebts * 12,
+                "fiveYears", currentDebts * 60,
+                "tenYears", currentDebts * 120
         ));
 
         return ResponseEntity.ok(projection);
+    }
+
+    private double projectedWealthAfterYears(List<Investment> investments, double monthlySavings, int years) {
+        double projectedInvestments = investments.stream()
+                .mapToDouble(i -> {
+                    double principal = parse(nullToZero(i.getCurrentValue()));
+                    double annualReturn = expectedAnnualReturn(i.getType());
+                    return principal * Math.pow(1 + annualReturn, years);
+                })
+                .sum();
+
+        double futureSavings = monthlySavings * 12 * years;
+        return projectedInvestments + futureSavings;
+    }
+
+    private double projectedNetWorthAfterYears(List<Investment> investments, double monthlySavings, double monthlyDebt, int years) {
+        double projectedWealth = projectedWealthAfterYears(investments, monthlySavings, years);
+        double projectedDebt = monthlyDebt * 12 * years;
+        return projectedWealth - projectedDebt;
+    }
+
+    private double expectedAnnualReturn(String type) {
+        String normalized = Optional.ofNullable(type).orElse("").toLowerCase(Locale.ROOT);
+        return switch (normalized) {
+            case "pf" -> 0.0825;
+            case "fd", "bond" -> 0.068;
+            case "mutual-fund", "etf" -> 0.11;
+            case "stock" -> 0.12;
+            case "real-estate" -> 0.09;
+            case "crypto" -> 0.15;
+            default -> 0.08;
+        };
     }
 
     private static double parse(String amount) {

@@ -68,7 +68,7 @@ export default function NetWorthProjection() {
           Future Wealth Projection
         </CardTitle>
         <p className="text-emerald-100 text-sm">
-          Based on current savings rate: {savings.currentSavingsRate?.toFixed(1) || 0}%
+          Includes salary savings, investments, and current debt obligations
         </p>
       </CardHeader>
       <CardContent>
@@ -103,8 +103,8 @@ export default function NetWorthProjection() {
               <p className="font-semibold">{formatCurrency(savings.projectedMonthlySavings || 0)}</p>
             </div>
             <div>
-              <p className="text-emerald-100">Investment Target</p>
-              <p className="font-semibold">{formatCurrency(savings.recommendedInvestmentAmount || 0)}</p>
+              <p className="text-emerald-100">Monthly Debt/EMI</p>
+              <p className="font-semibold">{formatCurrency(netWorth.monthlyDebtObligation || 0)}</p>
             </div>
           </div>
         </div>

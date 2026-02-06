@@ -15,6 +15,24 @@ const investmentSchema = z.object({
   symbol: z.string().min(1, "Symbol is required"),
   name: z.string().min(1, "Name is required"),
   type: z.string().min(1, "Type is required"),
+  shares: z.string().min(1, "Number of units is required"),
+  avgCost: z.string().min(1, "Average cost is required"),
+  currentValue: z.string().min(1, "Current value is required"),
+  purchaseDate: z.string().min(1, "Purchase date is required"),
+  pfCurrentAge: z.string().optional(),
+  pfCompanyType: z.enum(["current", "previous"]).optional(),
+  pfCompanyAmount: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.type === "pf") {
+    if (!data.pfCurrentAge) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCurrentAge"], message: "Current age is required for PF" });
+    }
+    if (!data.pfCompanyType) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCompanyType"], message: "Select current or previous company" });
+    }
+    if (!data.pfCompanyAmount) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCompanyAmount"], message: "Company PF amount is required" });
+    }
   shares: z.string().min(1, "Value is required"),
   avgCost: z.string().min(1, "Value is required"),
   currentValue: z.string().min(1, "Current value is required"),
@@ -51,6 +69,8 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       currentValue: "",
       purchaseDate: "",
       pfCurrentAge: "",
+      pfCompanyType: "current",
+      pfCompanyAmount: "",
     }
   });
 
@@ -59,6 +79,13 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
 
   const addInvestmentMutation = useMutation({
     mutationFn: async (data: z.infer<typeof investmentSchema>) => {
+      const isCurrentCompany = data.pfCompanyType === "current";
+      const payload = {
+        ...data,
+        shares: data.type === "pf" ? "0" : data.shares,
+        avgCost: data.type === "pf" ? "0" : data.avgCost,
+        pfCurrentCompany: data.type === "pf" ? (isCurrentCompany ? data.pfCompanyAmount : "0") : null,
+        pfPreviousCompany: data.type === "pf" ? (isCurrentCompany ? "0" : data.pfCompanyAmount) : null,
       const payload = {
         ...data,
         pfCurrentCompany: data.type === "pf" ? data.avgCost : null,
@@ -69,14 +96,13 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/investments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
-      toast({
-        title: "Success",
-        description: "Investment added successfully"
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/savings-projection"] });
+      toast({ title: "Success", description: "Investment added successfully" });
       reset();
       onClose();
     },
     onError: (error) => {
+      toast({ title: "Error", description: `Failed to add investment: ${error.message}`, variant: "destructive" });
       toast({
         title: "Error",
         description: `Failed to add investment: ${error.message}`,
@@ -85,14 +111,13 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
     }
   });
 
-  const onSubmit = (data: z.infer<typeof investmentSchema>) => {
-    addInvestmentMutation.mutate(data);
-  };
+  const onSubmit = (data: z.infer<typeof investmentSchema>) => addInvestmentMutation.mutate(data);
 
   const investmentTypes = [
     { value: "stock", label: "Stock" },
     { value: "etf", label: "ETF" },
     { value: "mutual-fund", label: "Mutual Fund" },
+    { value: "fd", label: "Fixed Deposit (FD)" },
     { value: "bond", label: "Bond" },
     { value: "crypto", label: "Cryptocurrency" },
     { value: "real-estate", label: "Real Estate" },
@@ -110,6 +135,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="symbol">Symbol</Label>
+            <Input id="symbol" placeholder={isPfInvestment ? "e.g., UAN" : "e.g., AAPL, NIFTYBEES"} {...register("symbol")} className={errors.symbol ? "border-red-500" : ""} />
             <Input
               id="symbol"
               placeholder={isPfInvestment ? "e.g., UAN" : "e.g., AAPL, GOOGL"}
@@ -121,6 +147,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
 
           <div>
             <Label htmlFor="name">Investment Name</Label>
+            <Input id="name" placeholder={isPfInvestment ? "e.g., Employee Provident Fund" : "e.g., Apple Inc."} {...register("name")} className={errors.name ? "border-red-500" : ""} />
             <Input
               id="name"
               placeholder={isPfInvestment ? "e.g., Employee Provident Fund" : "e.g., Apple Inc."}
@@ -133,20 +160,71 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div>
             <Label htmlFor="type">Investment Type</Label>
             <Select onValueChange={(value) => setValue("type", value)}>
-              <SelectTrigger className={errors.type ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {investmentTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+              <SelectTrigger className={errors.type ? "border-red-500" : ""}><SelectValue placeholder="Select type" /></SelectTrigger>
+              <SelectContent>{investmentTypes.map((type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>)}</SelectContent>
             </Select>
             {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type.message}</p>}
           </div>
 
+          {isPfInvestment ? (
+            <>
+              <div>
+                <Label htmlFor="pfCompanyType">PF Company Type</Label>
+                <Select onValueChange={(value) => setValue("pfCompanyType", value as "current" | "previous")}>
+                  <SelectTrigger className={errors.pfCompanyType ? "border-red-500" : ""}><SelectValue placeholder="Current or previous company" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="current">Current Company</SelectItem>
+                    <SelectItem value="previous">Previous Company</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.pfCompanyType && <p className="text-sm text-red-500 mt-1">{errors.pfCompanyType.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="pfCompanyAmount">Selected Company PF Amount</Label>
+                <Input id="pfCompanyAmount" type="number" step="0.01" placeholder="0.00" {...register("pfCompanyAmount")} className={errors.pfCompanyAmount ? "border-red-500" : ""} />
+                {errors.pfCompanyAmount && <p className="text-sm text-red-500 mt-1">{errors.pfCompanyAmount.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="currentValue">Current PF Balance</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
+                  <Input id="currentValue" type="number" step="0.01" placeholder="0.00" className={`pl-8 ${errors.currentValue ? "border-red-500" : ""}`} {...register("currentValue")} />
+                </div>
+                {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="pfCurrentAge">Current Age</Label>
+                <Input id="pfCurrentAge" type="number" min="18" max="60" placeholder="e.g., 32" {...register("pfCurrentAge")} className={errors.pfCurrentAge ? "border-red-500" : ""} />
+                {errors.pfCurrentAge && <p className="text-sm text-red-500 mt-1">{errors.pfCurrentAge.message}</p>}
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <Label htmlFor="shares">Number of Units/Shares</Label>
+                <Input id="shares" type="number" step="0.01" placeholder="0.00" {...register("shares")} className={errors.shares ? "border-red-500" : ""} />
+                {errors.shares && <p className="text-sm text-red-500 mt-1">{errors.shares.message}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="avgCost">Average Cost per Unit</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
+                  <Input id="avgCost" type="number" step="0.01" placeholder="0.00" className={`pl-8 ${errors.avgCost ? "border-red-500" : ""}`} {...register("avgCost")} />
+                </div>
+                {errors.avgCost && <p className="text-sm text-red-500 mt-1">{errors.avgCost.message}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="currentValue">Current Value</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
+                  <Input id="currentValue" type="number" step="0.01" placeholder="0.00" className={`pl-8 ${errors.currentValue ? "border-red-500" : ""}`} {...register("currentValue")} />
+                </div>
+                {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
+              </div>
+            </>
+          )}
           <div>
             <Label htmlFor="shares">{isPfInvestment ? "Previous Company PF Amount" : "Number of Shares"}</Label>
             <Input
@@ -210,16 +288,13 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
 
           <div>
             <Label htmlFor="purchaseDate">Purchase Date</Label>
-            <Input
-              id="purchaseDate"
-              type="date"
-              {...register("purchaseDate")}
-              className={errors.purchaseDate ? "border-red-500" : ""}
-            />
+            <Input id="purchaseDate" type="date" {...register("purchaseDate")} className={errors.purchaseDate ? "border-red-500" : ""} />
             {errors.purchaseDate && <p className="text-sm text-red-500 mt-1">{errors.purchaseDate.message}</p>}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={addInvestmentMutation.isPending} className="bg-finance-blue hover:bg-blue-700">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>

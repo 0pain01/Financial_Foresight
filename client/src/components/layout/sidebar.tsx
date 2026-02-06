@@ -56,9 +56,9 @@ export default function Sidebar() {
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tools</h3>
         </div>
         <div className="space-y-1">
-          <Link href="/ai-insights" className={getNavItemClass("/ai-insights")}>
+          <Link href="/insights" className={getNavItemClass("/insights")}>
             <Bot className="mr-3 h-4 w-4" />
-            AI Insights
+            Insights
           </Link>
           <Link href="/import-data" className={getNavItemClass("/import-data")}>
             <Upload className="mr-3 h-4 w-4" />

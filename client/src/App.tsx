@@ -12,7 +12,7 @@ import Dashboard from "@/pages/dashboard";
 import TransactionsPage from "@/pages/transactions";
 import BillsPage from "@/pages/bills";
 import AnalyticsPage from "@/pages/analytics";
-import AIInsightsPage from "@/pages/ai-insights";
+import InsightsPage from "@/pages/ai-insights";
 import InvestmentsPage from "@/pages/investments";
 import ImportDataPage from "@/pages/import-data";
 import SettingsPage from "@/pages/settings";
@@ -49,9 +49,14 @@ function Router() {
           <AnalyticsPage />
         </ProtectedRoute>
       </Route>
+      <Route path="/insights">
+        <ProtectedRoute>
+          <InsightsPage />
+        </ProtectedRoute>
+      </Route>
       <Route path="/ai-insights">
         <ProtectedRoute>
-          <AIInsightsPage />
+          <InsightsPage />
         </ProtectedRoute>
       </Route>
       <Route path="/investments">
