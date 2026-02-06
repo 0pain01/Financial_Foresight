@@ -92,6 +92,42 @@ export default function InsightsPage() {
             </CardContent>
           </Card>
 
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Target className="mr-2 h-5 w-5" />
+                PF Retirement Projection
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {savingsData?.pfPrincipal > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Based on your current PF + company contributions and fixed PF interest rate of {savingsData?.pfInterestRate || 8.25}%.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[50, 55, 60].map((age) => (
+                      <div key={age} className="rounded-lg border p-4 bg-muted/30">
+                        <p className="text-sm text-muted-foreground">At age {age}</p>
+                        <p className="text-lg font-semibold text-foreground">
+                          {formatCurrency(savingsData?.pfRetirementProjection?.[`age${age}`] || 0)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>Current PF: {formatCurrency(savingsData?.pfPrincipal || 0)}</p>
+                    <p>Current company PF amount: {formatCurrency(savingsData?.pfCurrentCompanyTotal || 0)}</p>
+                    <p>Previous company PF amount: {formatCurrency(savingsData?.pfPreviousCompanyTotal || 0)}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Add a PF investment with current and previous company details to view retirement projection for ages 50-60.</p>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader><CardTitle className="flex items-center"><Brain className="mr-2 h-5 w-5" />Personalized Insights</CardTitle></CardHeader>
             <CardContent>
