@@ -26,8 +26,6 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
     pfCurrentAge: "",
     pfCompanyType: "current",
     pfCompanyAmount: "",
-    pfCurrentCompany: "",
-    pfPreviousCompany: "",
   });
 
   const { getCurrencySymbol } = useCurrency();
@@ -52,10 +50,6 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
         pfCurrentAge: investment.pfCurrentAge || "",
         pfCompanyType: companyType,
         pfCompanyAmount: String(companyAmount || ""),
-        purchaseDate: investment.purchaseDate ? new Date(investment.purchaseDate).toISOString().split('T')[0] : "",
-        pfCurrentAge: investment.pfCurrentAge || "",
-        pfCurrentCompany: investment.pfCurrentCompany || investment.avgCost || "",
-        pfPreviousCompany: investment.pfPreviousCompany || investment.shares || "",
       });
     }
   }, [investment]);
@@ -72,11 +66,6 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
         pfPreviousCompany: isPf ? (isCurrentCompany ? "0" : data.pfCompanyAmount) : null,
       };
 
-      const payload = {
-        ...data,
-        pfCurrentCompany: data.type === "pf" ? data.avgCost : null,
-        pfPreviousCompany: data.type === "pf" ? data.shares : null,
-      };
       const response = await fetch(`http://localhost:8080/api/investments/${investment.id}`, {
         method: "PUT",
         headers: {
@@ -128,23 +117,6 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input id="name" value={formData.name} onChange={(e) => handleInputChange("name", e.target.value)} required />
-              <Input
-                id="symbol"
-                value={formData.symbol}
-                onChange={(e) => handleInputChange("symbol", e.target.value)}
-                placeholder={isPfInvestment ? "UAN" : "AAPL"}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder={isPfInvestment ? "Employee Provident Fund" : "Apple Inc."}
-                required
-              />
             </div>
           </div>
 
@@ -217,69 +189,6 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
                 </div>
               </div>
             </>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="shares">{isPfInvestment ? "Previous Company PF Amount" : "Shares"}</Label>
-              <Input
-                id="shares"
-                type="number"
-                step="0.01"
-                value={formData.shares}
-                onChange={(e) => handleInputChange("shares", e.target.value)}
-                placeholder="0"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="avgCost">{isPfInvestment ? "Current Company PF Amount" : "Average Cost"}</Label>
-              <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
-              <Input
-                id="avgCost"
-                type="number"
-                step="0.01"
-                value={formData.avgCost}
-                onChange={(e) => handleInputChange("avgCost", e.target.value)}
-                placeholder="150.00"
-                className="pl-8"
-                required
-              />
-            </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="currentValue">{isPfInvestment ? "Current PF Balance" : "Current Value"}</Label>
-            <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
-            <Input
-              id="currentValue"
-              type="number"
-              step="0.01"
-              value={formData.currentValue}
-              onChange={(e) => handleInputChange("currentValue", e.target.value)}
-              placeholder="1600.00"
-              className="pl-8"
-              required
-            />
-          </div>
-          </div>
-
-          {isPfInvestment && (
-            <div className="space-y-2">
-              <Label htmlFor="pfCurrentAge">Current Age</Label>
-              <Input
-                id="pfCurrentAge"
-                type="number"
-                min="18"
-                max="60"
-                value={formData.pfCurrentAge}
-                onChange={(e) => handleInputChange("pfCurrentAge", e.target.value)}
-                placeholder="32"
-                required
-              />
-            </div>
           )}
 
           <div className="space-y-2">
