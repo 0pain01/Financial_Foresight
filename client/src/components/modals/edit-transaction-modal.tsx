@@ -2,9 +2,8 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +17,10 @@ const editTransactionSchema = z.object({
   category: z.string(),
   type: z.string(),
   date: z.string(),
-  paymentMethod: z.string().optional()
+  paymentMethod: z.string().optional(),
+  intentTag: z.string().optional(),
+  repeatPattern: z.string().optional(),
+  isPlanned: z.boolean().optional()
 });
 
 interface EditTransactionModalProps {
@@ -43,7 +45,10 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
       category: "",
       type: "expense",
       date: new Date().toISOString().split('T')[0],
-      paymentMethod: ""
+      paymentMethod: "",
+      intentTag: "Optional",
+      repeatPattern: "none",
+      isPlanned: false
     }
   });
 
@@ -56,7 +61,10 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
         category: transaction.category || "",
         type: transaction.type || "expense",
         date: transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        paymentMethod: transaction.paymentMethod || ""
+        paymentMethod: transaction.paymentMethod || "",
+        intentTag: transaction.intentTag || "Optional",
+        repeatPattern: transaction.repeatPattern || "none",
+        isPlanned: Boolean(transaction.isPlanned)
       });
     }
   }, [transaction, form]);
@@ -86,6 +94,8 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     editTransactionMutation.mutate(data);
   };
+
+  const intentTags = ["Necessary", "Optional", "Investment in self", "Emotional", "Convenience tax", "Regret spend"];
 
   const categories = [
     "Food & Dining",
@@ -192,6 +202,54 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
               )}
             />
             
+            <FormField
+              control={form.control}
+              name="intentTag"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intent Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {intentTags.map((intent) => (
+                        <SelectItem key={intent} value={intent}>{intent}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="repeatPattern"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Repeat Pattern</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Updating this only changes this entry; future generated entries can be edited separately.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="date"
