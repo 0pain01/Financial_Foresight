@@ -28,4 +28,13 @@ public class Investment {
     private String avgCost;
     @Column(name = "current_value")
     private String currentValue;
+
+    @Column(name = "pf_current_company")
+    private String pfCurrentCompany;
+
+    @Column(name = "pf_previous_company")
+    private String pfPreviousCompany;
+
+    @Column(name = "pf_current_age")
+    private String pfCurrentAge;
 }
