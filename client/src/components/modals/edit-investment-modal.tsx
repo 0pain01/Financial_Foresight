@@ -25,7 +25,7 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
     purchaseDate: ""
   });
 
-  const { formatCurrency } = useCurrency();
+  const { getCurrencySymbol } = useCurrency();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -127,6 +127,8 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
                 <SelectItem value="mutual-fund">Mutual Fund</SelectItem>
                 <SelectItem value="bond">Bond</SelectItem>
                 <SelectItem value="crypto">Cryptocurrency</SelectItem>
+                <SelectItem value="real-estate">Real Estate</SelectItem>
+                <SelectItem value="pf">PF Account</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -147,6 +149,8 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
             </div>
             <div className="space-y-2">
               <Label htmlFor="avgCost">Average Cost</Label>
+              <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
               <Input
                 id="avgCost"
                 type="number"
@@ -154,13 +158,17 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
                 value={formData.avgCost}
                 onChange={(e) => handleInputChange("avgCost", e.target.value)}
                 placeholder="150.00"
+                className="pl-8"
                 required
               />
+            </div>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="currentValue">Current Value</Label>
+            <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
             <Input
               id="currentValue"
               type="number"
@@ -168,8 +176,10 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
               value={formData.currentValue}
               onChange={(e) => handleInputChange("currentValue", e.target.value)}
               placeholder="1600.00"
+              className="pl-8"
               required
             />
+          </div>
           </div>
 
           <div className="space-y-2">

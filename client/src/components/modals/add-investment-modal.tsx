@@ -9,6 +9,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const investmentSchema = z.object({
   symbol: z.string().min(1, "Symbol is required"),
@@ -28,6 +29,7 @@ interface AddInvestmentModalProps {
 export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getCurrencySymbol } = useCurrency();
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<z.infer<typeof investmentSchema>>({
     resolver: zodResolver(investmentSchema),
@@ -81,6 +83,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
     { value: "bond", label: "Bond" },
     { value: "crypto", label: "Cryptocurrency" },
     { value: "real-estate", label: "Real Estate" },
+    { value: "pf", label: "PF Account" },
     { value: "other", label: "Other" }
   ];
 
@@ -147,7 +150,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div>
             <Label htmlFor="avgCost">Average Cost per Share</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
               <Input
                 id="avgCost"
                 type="number"
@@ -163,7 +166,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
           <div>
             <Label htmlFor="currentValue">Current Value</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
               <Input
                 id="currentValue"
                 type="number"

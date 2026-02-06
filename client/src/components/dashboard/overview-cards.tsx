@@ -1,11 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function OverviewCards() {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ["/api/dashboard"],
   });
+  const { formatCurrency } = useCurrency();
 
   if (isLoading) {
     return (
@@ -31,7 +33,7 @@ export default function OverviewCards() {
   const cards = [
     {
       title: "Total Balance",
-      value: `$${totalBalance.toLocaleString()}`,
+      value: formatCurrency(totalBalance),
       change: "+2.5% from last month",
       icon: Wallet,
       iconBg: "bg-finance-blue bg-opacity-10",
@@ -40,7 +42,7 @@ export default function OverviewCards() {
     },
     {
       title: "Monthly Income",
-      value: `$${monthlyIncome.toLocaleString()}`,
+      value: formatCurrency(monthlyIncome),
       change: "+1.2% from last month",
       icon: TrendingUp,
       iconBg: "bg-finance-green bg-opacity-10",
@@ -49,7 +51,7 @@ export default function OverviewCards() {
     },
     {
       title: "Monthly Expenses",
-      value: `$${monthlyExpenses.toLocaleString()}`,
+      value: formatCurrency(monthlyExpenses),
       change: "+8.3% from last month",
       icon: TrendingDown,
       iconBg: "bg-red-100",

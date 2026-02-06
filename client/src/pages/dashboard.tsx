@@ -13,12 +13,15 @@ import CSVUploadModal from "@/components/modals/csv-upload-modal";
 import AddBillModal from "@/components/modals/add-bill-modal";
 import BudgetModal from "@/components/modals/budget-modal";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isCSVModalOpen, setIsCSVModalOpen] = useState(false);
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const { user } = useAuth();
+  const firstName = user?.firstName || user?.username || "User";
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -28,7 +31,7 @@ export default function Dashboard() {
         <div className="p-4 sm:p-6 lg:p-8">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-foreground">Welcome back, John!</h1>
+            <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}!</h1>
             <p className="text-muted-foreground">Here's your financial overview for this month.</p>
           </div>
 
