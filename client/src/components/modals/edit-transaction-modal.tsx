@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import type { Transaction } from "@/types/api";
 
 const editTransactionSchema = z.object({
   amount: z.string(),
@@ -26,11 +27,23 @@ const editTransactionSchema = z.object({
 interface EditTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  transaction: any;
+  transaction: Transaction | null;
 }
 
 const formSchema = editTransactionSchema.extend({
-  amount: z.string().min(1, "Amount is required").refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Amount must be a positive number")
+  amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Amount must be a positive number")
+});
+
+const getDefaultValues = () => ({
+  amount: "",
+  description: "",
+  category: "Other",
+  type: "expense",
+  date: new Date().toISOString().split("T")[0],
+  paymentMethod: "",
+  intentTag: "Optional",
+  repeatPattern: "none",
+  isPlanned: false
 });
 
 export default function EditTransactionModal({ isOpen, onClose, transaction }: EditTransactionModalProps) {
@@ -52,7 +65,6 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
     }
   });
 
-  // Update form values when transaction prop changes
   React.useEffect(() => {
     if (transaction) {
       form.reset({
@@ -67,10 +79,30 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
         isPlanned: Boolean(transaction.isPlanned)
       });
     }
-  }, [transaction, form]);
+
+    if (!transaction) {
+      form.reset(getDefaultValues());
+      return;
+    }
+
+    form.reset({
+      amount: transaction.amount || "",
+      description: transaction.description || "",
+      category: transaction.category || "Other",
+      type: transaction.type || "expense",
+      date: transaction.date || new Date().toISOString().split("T")[0],
+      paymentMethod: transaction.paymentMethod || "",
+      intentTag: transaction.intentTag || "Optional",
+      repeatPattern: transaction.repeatPattern || "none",
+      isPlanned: Boolean(transaction.isPlanned)
+    });
+  }, [isOpen, transaction, form]);
 
   const editTransactionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
+      if (!transaction) {
+        throw new Error("No transaction selected");
+      }
       return apiRequest("PUT", `/api/transactions/${transaction.id}`, data);
     },
     onSuccess: () => {
@@ -110,12 +142,12 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">Edit Transaction</DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -124,7 +156,7 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Transaction Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -139,7 +171,7 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="amount"
@@ -164,7 +196,7 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="category"
@@ -178,7 +210,7 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map(category => (
+                      {categories.map((category) => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
                     </SelectContent>
@@ -187,7 +219,7 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -201,7 +233,55 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={form.control}
+              name="intentTag"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intent Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {intentTags.map((intent) => (
+                        <SelectItem key={intent} value={intent}>{intent}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="repeatPattern"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Repeat Pattern</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Updating this only changes this entry; future generated entries can be edited separately.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="intentTag"
@@ -277,15 +357,15 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                 </FormItem>
               )}
             />
-            
+
             <div className="flex space-x-3 pt-4">
               <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                className="flex-1 bg-finance-blue hover:bg-blue-700" 
-                disabled={editTransactionMutation.isPending}
+              <Button
+                type="submit"
+                className="flex-1 bg-finance-blue hover:bg-blue-700"
+                disabled={editTransactionMutation.isPending || !transaction}
               >
                 {editTransactionMutation.isPending ? "Updating..." : "Update Transaction"}
               </Button>
