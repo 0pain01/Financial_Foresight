@@ -1,80 +1,131 @@
+import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "@/contexts/CurrencyContext";
-
-const investmentSchema = z.object({
-  symbol: z.string().min(1, "Symbol is required"),
-  name: z.string().min(1, "Name is required"),
-  type: z.string().min(1, "Type is required"),
-  shares: z.string().min(1, "Number of units is required"),
-  avgCost: z.string().min(1, "Average cost is required"),
-  currentValue: z.string().min(1, "Current value is required"),
-  purchaseDate: z.string().min(1, "Purchase date is required"),
-  pfCurrentAge: z.string().optional(),
-  pfCompanyType: z.enum(["current", "previous"]).optional(),
-  pfCompanyAmount: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.type === "pf") {
-    if (!data.pfCurrentAge) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCurrentAge"], message: "Current age is required for PF" });
-    }
-    if (!data.pfCompanyType) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCompanyType"], message: "Select current or previous company" });
-    }
-    if (!data.pfCompanyAmount) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["pfCompanyAmount"], message: "Company PF amount is required" });
-    }
-  }
-});
+import { compoundFutureValue, formatProjectionYears, sipFutureValue, toNumber } from "@/lib/investment-calculations";
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type InvestmentType = "pf" | "mutual-fund" | "stock" | "fd" | "crypto" | "gold" | "other";
+
+const investmentTypeOptions: { value: InvestmentType; label: string }[] = [
+  { value: "pf", label: "PF (Provident Fund)" },
+  { value: "mutual-fund", label: "MF (Mutual Fund)" },
+  { value: "stock", label: "Stocks" },
+  { value: "fd", label: "Fixed Deposit (FD)" },
+  { value: "crypto", label: "Crypto" },
+  { value: "gold", label: "Gold" },
+  { value: "other", label: "Other Investments" },
+];
+
+const defaultForm = {
+  employerName: "",
+  pfAccountNumber: "",
+  employeeMonthlyContribution: "",
+  employerMonthlyContribution: "",
+  contributionStartDate: "",
+  currentBalance: "",
+  interestRate: "8.25",
+  fundName: "",
+  fundType: "",
+  mfInvestmentType: "sip",
+  sipAmount: "",
+  sipFrequency: "monthly",
+  startDate: "",
+  navAtPurchase: "",
+  expectedAnnualReturn: "12",
+  investmentPlatform: "",
+  stockName: "",
+  quantity: "",
+  buyPrice: "",
+  buyDate: "",
+  exchange: "NSE",
+  stockExpectedGrowth: "11",
+  investmentName: "",
+  category: "",
+  amountInvested: "",
+  investmentDate: "",
+  expectedReturn: "10",
+  maturityDate: "",
+  notes: "",
+};
+
 export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { getCurrencySymbol } = useCurrency();
+  const { formatCurrency } = useCurrency();
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<z.infer<typeof investmentSchema>>({
-    resolver: zodResolver(investmentSchema),
-    defaultValues: {
-      symbol: "",
-      name: "",
-      type: "",
-      shares: "",
-      avgCost: "",
-      currentValue: "",
-      purchaseDate: "",
-      pfCurrentAge: "",
-      pfCompanyType: "current",
-      pfCompanyAmount: "",
-    }
-  });
+  const [selectedType, setSelectedType] = useState<InvestmentType | "">("");
+  const [form, setForm] = useState(defaultForm);
 
-  const selectedType = watch("type");
-  const isPfInvestment = selectedType === "pf";
+  const setValue = (key: keyof typeof form, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const resetModal = () => {
+    setSelectedType("");
+    setForm(defaultForm);
+  };
 
   const addInvestmentMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof investmentSchema>) => {
-      const isCurrentCompany = data.pfCompanyType === "current";
-      const payload = {
-        ...data,
-        shares: data.type === "pf" ? "0" : data.shares,
-        avgCost: data.type === "pf" ? "0" : data.avgCost,
-        pfCurrentCompany: data.type === "pf" ? (isCurrentCompany ? data.pfCompanyAmount : "0") : null,
-        pfPreviousCompany: data.type === "pf" ? (isCurrentCompany ? "0" : data.pfCompanyAmount) : null,
-      };
+    mutationFn: async () => {
+      let payload: any = {};
+
+      if (selectedType === "pf") {
+        const monthlyContribution = toNumber(form.employeeMonthlyContribution) + toNumber(form.employerMonthlyContribution);
+        payload = {
+          symbol: form.pfAccountNumber || "PF",
+          name: form.employerName || "Provident Fund",
+          type: "pf",
+          shares: "0",
+          avgCost: "0",
+          currentValue: String(toNumber(form.currentBalance)),
+          purchaseDate: form.contributionStartDate,
+          pfCurrentAge: "30",
+          pfCurrentCompany: String(monthlyContribution),
+          pfPreviousCompany: "0",
+        };
+      } else if (selectedType === "mutual-fund") {
+        const baseAmount = form.mfInvestmentType === "sip" ? toNumber(form.sipAmount) : toNumber(form.amountInvested);
+        payload = {
+          symbol: (form.fundName || "MF").slice(0, 12),
+          name: form.fundName,
+          type: "mutual-fund",
+          shares: String(baseAmount),
+          avgCost: String(toNumber(form.navAtPurchase) || 1),
+          currentValue: String(baseAmount),
+          purchaseDate: form.startDate,
+        };
+      } else if (selectedType === "stock") {
+        payload = {
+          symbol: form.stockName,
+          name: form.stockName,
+          type: "stock",
+          shares: String(toNumber(form.quantity)),
+          avgCost: String(toNumber(form.buyPrice)),
+          currentValue: String(toNumber(form.quantity) * toNumber(form.buyPrice)),
+          purchaseDate: form.buyDate,
+        };
+      } else {
+        payload = {
+          symbol: (form.investmentName || selectedType || "INV").slice(0, 12),
+          name: form.investmentName || `${selectedType} investment`,
+          type: selectedType,
+          shares: String(toNumber(form.amountInvested) || 1),
+          avgCost: "1",
+          currentValue: String(toNumber(form.amountInvested)),
+          purchaseDate: form.investmentDate,
+        };
+      }
+
       return apiRequest("POST", "/api/investments", payload);
     },
     onSuccess: () => {
@@ -82,130 +133,162 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["/api/savings-projection"] });
       toast({ title: "Success", description: "Investment added successfully" });
-      reset();
+      resetModal();
       onClose();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({ title: "Error", description: `Failed to add investment: ${error.message}`, variant: "destructive" });
-    }
+    },
   });
 
-  const onSubmit = (data: z.infer<typeof investmentSchema>) => addInvestmentMutation.mutate(data);
+  const pfPreview = useMemo(() => {
+    const annualContribution = (toNumber(form.employeeMonthlyContribution) + toNumber(form.employerMonthlyContribution)) * 12;
+    const estimatedCorpus = compoundFutureValue(toNumber(form.currentBalance) + annualContribution, toNumber(form.interestRate), 20);
+    return { annualContribution, estimatedCorpus };
+  }, [form]);
 
-  const investmentTypes = [
-    { value: "stock", label: "Stock" },
-    { value: "etf", label: "ETF" },
-    { value: "mutual-fund", label: "Mutual Fund" },
-    { value: "fd", label: "Fixed Deposit (FD)" },
-    { value: "bond", label: "Bond" },
-    { value: "crypto", label: "Cryptocurrency" },
-    { value: "real-estate", label: "Real Estate" },
-    { value: "pf", label: "PF Account" },
-    { value: "other", label: "Other" }
-  ];
+  const mfPreview = useMemo(() => {
+    const rate = toNumber(form.expectedAnnualReturn);
+    const principal = form.mfInvestmentType === "sip" ? toNumber(form.sipAmount) : toNumber(form.amountInvested);
+    return formatProjectionYears.map((years) => ({
+      years,
+      value: form.mfInvestmentType === "sip" ? sipFutureValue(principal, rate, years, form.sipFrequency === "quarterly" ? 4 : 12) : compoundFutureValue(principal, rate, years),
+    }));
+  }, [form]);
+
+  const stockPreview = useMemo(() => {
+    const invested = toNumber(form.quantity) * toNumber(form.buyPrice);
+    const current = compoundFutureValue(invested, toNumber(form.stockExpectedGrowth), 1);
+    return { invested, current, gain: current - invested };
+  }, [form]);
+
+  const submitDisabled = !selectedType;
+
+  const renderStepTwoForm = () => {
+    if (selectedType === "pf") {
+      return <div className="space-y-3">
+        <Label>Employer Name</Label><Input value={form.employerName} onChange={(e) => setValue("employerName", e.target.value)} />
+        <Label>PF Account Number (optional)</Label><Input value={form.pfAccountNumber} onChange={(e) => setValue("pfAccountNumber", e.target.value)} />
+        <Label>Employee Monthly Contribution</Label><Input type="number" value={form.employeeMonthlyContribution} onChange={(e) => setValue("employeeMonthlyContribution", e.target.value)} />
+        <Label>Employer Monthly Contribution</Label><Input type="number" value={form.employerMonthlyContribution} onChange={(e) => setValue("employerMonthlyContribution", e.target.value)} />
+        <Label>Contribution Start Date</Label><Input type="date" value={form.contributionStartDate} onChange={(e) => setValue("contributionStartDate", e.target.value)} />
+        <Label>Current Balance (optional)</Label><Input type="number" value={form.currentBalance} onChange={(e) => setValue("currentBalance", e.target.value)} />
+        <Label>Interest Rate (%)</Label><Input type="number" value={form.interestRate} onChange={(e) => setValue("interestRate", e.target.value)} />
+        <div className="rounded-md border bg-muted/30 p-3 text-sm">
+          <p>Compounding Frequency: <span className="font-medium">Yearly</span></p>
+          <p>Annual Contribution Summary: <span className="font-medium">{formatCurrency(pfPreview.annualContribution)}</span></p>
+          <p>Estimated Retirement Corpus (20 years): <span className="font-medium">{formatCurrency(pfPreview.estimatedCorpus)}</span></p>
+        </div>
+      </div>;
+    }
+
+    if (selectedType === "mutual-fund") {
+      const peak = Math.max(...mfPreview.map((m) => m.value), 1);
+      return <div className="space-y-3">
+        <Label>Fund Name</Label><Input value={form.fundName} onChange={(e) => setValue("fundName", e.target.value)} />
+        <Label>Fund Type</Label>
+        <Select onValueChange={(value) => setValue("fundType", value)}>
+          <SelectTrigger><SelectValue placeholder="Equity / Debt / Hybrid / Index" /></SelectTrigger>
+          <SelectContent>{["Equity", "Debt", "Hybrid", "Index"].map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+        </Select>
+        <Label>Investment Type</Label>
+        <Select defaultValue={form.mfInvestmentType} onValueChange={(value) => setValue("mfInvestmentType", value)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="sip">SIP</SelectItem><SelectItem value="lumpsum">Lump Sum</SelectItem></SelectContent>
+        </Select>
+        {form.mfInvestmentType === "sip" ? <>
+          <Label>SIP Amount</Label><Input type="number" value={form.sipAmount} onChange={(e) => setValue("sipAmount", e.target.value)} />
+          <Label>SIP Frequency</Label>
+          <Select defaultValue={form.sipFrequency} onValueChange={(value) => setValue("sipFrequency", value)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="quarterly">Quarterly</SelectItem></SelectContent>
+          </Select>
+        </> : <>
+          <Label>Lump Sum Amount</Label><Input type="number" value={form.amountInvested} onChange={(e) => setValue("amountInvested", e.target.value)} />
+        </>}
+        <Label>Start Date</Label><Input type="date" value={form.startDate} onChange={(e) => setValue("startDate", e.target.value)} />
+        <Label>NAV at Purchase (optional)</Label><Input type="number" value={form.navAtPurchase} onChange={(e) => setValue("navAtPurchase", e.target.value)} />
+        <Label>Expected Annual Return (%)</Label><Input type="number" value={form.expectedAnnualReturn} onChange={(e) => setValue("expectedAnnualReturn", e.target.value)} />
+        <Label>Investment Platform</Label><Input placeholder="Zerodha / Groww / AMC / Other" value={form.investmentPlatform} onChange={(e) => setValue("investmentPlatform", e.target.value)} />
+        <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+          <p>Total Invested Amount: <span className="font-medium">{formatCurrency(form.mfInvestmentType === "sip" ? toNumber(form.sipAmount) : toNumber(form.amountInvested))}</span></p>
+          {mfPreview.map((row) => <p key={row.years}>Estimated Value in {row.years} years: <span className="font-medium">{formatCurrency(row.value)}</span></p>)}
+          <div className="pt-2">
+            <p className="mb-1">Growth Curve Preview</p>
+            <div className="flex items-end gap-2 h-20">
+              {mfPreview.map((row) => <div key={row.years} className="flex-1 bg-primary/20 rounded-t" style={{ height: `${Math.max((row.value / peak) * 100, 8)}%` }} />)}
+            </div>
+          </div>
+        </div>
+      </div>;
+    }
+
+    if (selectedType === "stock") {
+      return <div className="space-y-3">
+        <Label>Stock Name / Ticker</Label><Input value={form.stockName} onChange={(e) => setValue("stockName", e.target.value)} />
+        <Label>Quantity</Label><Input type="number" value={form.quantity} onChange={(e) => setValue("quantity", e.target.value)} />
+        <Label>Buy Price</Label><Input type="number" value={form.buyPrice} onChange={(e) => setValue("buyPrice", e.target.value)} />
+        <Label>Buy Date</Label><Input type="date" value={form.buyDate} onChange={(e) => setValue("buyDate", e.target.value)} />
+        <Label>Exchange</Label>
+        <Select defaultValue={form.exchange} onValueChange={(value) => setValue("exchange", value)}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="NSE">NSE</SelectItem><SelectItem value="BSE">BSE</SelectItem></SelectContent>
+        </Select>
+        <Label>Expected Annual Growth %</Label><Input type="number" value={form.stockExpectedGrowth} onChange={(e) => setValue("stockExpectedGrowth", e.target.value)} />
+        <div className="rounded-md border bg-muted/30 p-3 text-sm">
+          <p>Invested Value: <span className="font-medium">{formatCurrency(stockPreview.invested)}</span></p>
+          <p>Current Value (estimated): <span className="font-medium">{formatCurrency(stockPreview.current)}</span></p>
+          <p>Unrealized Gain/Loss: <span className="font-medium">{formatCurrency(stockPreview.gain)}</span></p>
+        </div>
+      </div>;
+    }
+
+    return <div className="space-y-3">
+      <Label>Investment Name</Label><Input value={form.investmentName} onChange={(e) => setValue("investmentName", e.target.value)} />
+      <Label>Category (custom)</Label><Input value={form.category} onChange={(e) => setValue("category", e.target.value)} />
+      <Label>Amount Invested</Label><Input type="number" value={form.amountInvested} onChange={(e) => setValue("amountInvested", e.target.value)} />
+      <Label>Investment Date</Label><Input type="date" value={form.investmentDate} onChange={(e) => setValue("investmentDate", e.target.value)} />
+      <Label>Expected Return (%)</Label><Input type="number" value={form.expectedReturn} onChange={(e) => setValue("expectedReturn", e.target.value)} />
+      <Label>Maturity Date (optional)</Label><Input type="date" value={form.maturityDate} onChange={(e) => setValue("maturityDate", e.target.value)} />
+      <Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setValue("notes", e.target.value)} />
+      <p className="text-xs text-muted-foreground">This category is treated as a flexible generic asset and projected with compound return assumptions.</p>
+    </div>;
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { resetModal(); onClose(); } }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-foreground">Add Investment</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-foreground">➕ Add Investment</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-4">
           <div>
-            <Label htmlFor="symbol">Symbol</Label>
-            <Input id="symbol" placeholder={isPfInvestment ? "e.g., UAN" : "e.g., AAPL, NIFTYBEES"} {...register("symbol")} className={errors.symbol ? "border-red-500" : ""} />
-            {errors.symbol && <p className="text-sm text-red-500 mt-1">{errors.symbol.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="name">Investment Name</Label>
-            <Input id="name" placeholder={isPfInvestment ? "e.g., Employee Provident Fund" : "e.g., Apple Inc."} {...register("name")} className={errors.name ? "border-red-500" : ""} />
-            {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="type">Investment Type</Label>
-            <Select onValueChange={(value) => setValue("type", value)}>
-              <SelectTrigger className={errors.type ? "border-red-500" : ""}><SelectValue placeholder="Select type" /></SelectTrigger>
-              <SelectContent>{investmentTypes.map((type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>)}</SelectContent>
+            <Label>Step 1: Select Investment Type</Label>
+            <Select value={selectedType} onValueChange={(value) => setSelectedType(value as InvestmentType)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose PF, MF, Stocks, FD, Crypto, Gold, or Other" />
+              </SelectTrigger>
+              <SelectContent>
+                {investmentTypeOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+              </SelectContent>
             </Select>
-            {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type.message}</p>}
           </div>
 
-          {isPfInvestment ? (
-            <>
-              <div>
-                <Label htmlFor="pfCompanyType">PF Company Type</Label>
-                <Select onValueChange={(value) => setValue("pfCompanyType", value as "current" | "previous")}>
-                  <SelectTrigger className={errors.pfCompanyType ? "border-red-500" : ""}><SelectValue placeholder="Current or previous company" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="current">Current Company</SelectItem>
-                    <SelectItem value="previous">Previous Company</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.pfCompanyType && <p className="text-sm text-red-500 mt-1">{errors.pfCompanyType.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="pfCompanyAmount">Selected Company PF Amount</Label>
-                <Input id="pfCompanyAmount" type="number" step="0.01" placeholder="0.00" {...register("pfCompanyAmount")} className={errors.pfCompanyAmount ? "border-red-500" : ""} />
-                {errors.pfCompanyAmount && <p className="text-sm text-red-500 mt-1">{errors.pfCompanyAmount.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="currentValue">Current PF Balance</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
-                  <Input id="currentValue" type="number" step="0.01" placeholder="0.00" className={`pl-8 ${errors.currentValue ? "border-red-500" : ""}`} {...register("currentValue")} />
-                </div>
-                {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="pfCurrentAge">Current Age</Label>
-                <Input id="pfCurrentAge" type="number" min="18" max="60" placeholder="e.g., 32" {...register("pfCurrentAge")} className={errors.pfCurrentAge ? "border-red-500" : ""} />
-                {errors.pfCurrentAge && <p className="text-sm text-red-500 mt-1">{errors.pfCurrentAge.message}</p>}
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <Label htmlFor="shares">Number of Units/Shares</Label>
-                <Input id="shares" type="number" step="0.01" placeholder="0.00" {...register("shares")} className={errors.shares ? "border-red-500" : ""} />
-                {errors.shares && <p className="text-sm text-red-500 mt-1">{errors.shares.message}</p>}
-              </div>
-
-              <div>
-                <Label htmlFor="avgCost">Average Cost per Unit</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
-                  <Input id="avgCost" type="number" step="0.01" placeholder="0.00" className={`pl-8 ${errors.avgCost ? "border-red-500" : ""}`} {...register("avgCost")} />
-                </div>
-                {errors.avgCost && <p className="text-sm text-red-500 mt-1">{errors.avgCost.message}</p>}
-              </div>
-
-              <div>
-                <Label htmlFor="currentValue">Current Value</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
-                  <Input id="currentValue" type="number" step="0.01" placeholder="0.00" className={`pl-8 ${errors.currentValue ? "border-red-500" : ""}`} {...register("currentValue")} />
-                </div>
-                {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue.message}</p>}
-              </div>
-            </>
+          {selectedType && (
+            <div>
+              <Label className="mb-2 block">Step 2: Fill {investmentTypeOptions.find((item) => item.value === selectedType)?.label} details</Label>
+              {renderStepTwoForm()}
+            </div>
           )}
 
-          <div>
-            <Label htmlFor="purchaseDate">Purchase Date</Label>
-            <Input id="purchaseDate" type="date" {...register("purchaseDate")} className={errors.purchaseDate ? "border-red-500" : ""} />
-            {errors.purchaseDate && <p className="text-sm text-red-500 mt-1">{errors.purchaseDate.message}</p>}
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={addInvestmentMutation.isPending} className="bg-finance-blue hover:bg-blue-700">
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => { resetModal(); onClose(); }}>Cancel</Button>
+            <Button type="button" disabled={submitDisabled || addInvestmentMutation.isPending} onClick={() => addInvestmentMutation.mutate()} className="bg-finance-blue hover:bg-blue-700">
               {addInvestmentMutation.isPending ? "Adding..." : "Add Investment"}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

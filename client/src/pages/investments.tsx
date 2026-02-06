@@ -115,9 +115,14 @@ export default function InvestmentsPage() {
       <main className="flex-1 overflow-y-auto">
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-foreground">Investments</h1>
-            <p className="text-muted-foreground">Track FD, MF/ETF, PF, and other investment performance with corrected gain calculations.</p>
+          <div className="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Investments</h1>
+              <p className="text-muted-foreground">Track FD, MF/ETF, PF, and other investment performance with corrected gain calculations.</p>
+            </div>
+            <Button onClick={() => setIsAddModalOpen(true)} className="bg-finance-blue hover:bg-blue-700 shadow-sm">
+              <Plus className="mr-2 h-4 w-4" />➕ Add Investment
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -230,8 +235,8 @@ export default function InvestmentsPage() {
                     })
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">No investments found. Start building your portfolio!</p>
-                      <Button onClick={() => setIsAddModalOpen(true)} className="bg-finance-blue hover:bg-blue-700"><Plus className="mr-2 h-4 w-4" />Add Investment</Button>
+                      <p className="text-muted-foreground mb-4">You haven't added any investments yet.</p>
+                      <Button onClick={() => setIsAddModalOpen(true)} className="bg-finance-blue hover:bg-blue-700"><Plus className="mr-2 h-4 w-4" />➕ Add Investment</Button>
                     </div>
                   )}
                 </div>

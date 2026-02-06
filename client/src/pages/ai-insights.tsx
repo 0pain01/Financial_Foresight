@@ -1,37 +1,42 @@
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Brain, TrendingUp, AlertTriangle, Target, Lightbulb, Wallet, Landmark } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useQuery } from "@tanstack/react-query";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { calculateInsightMetrics, defaultAssumptions } from "@/lib/insights-calculations";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 
+type InsightKey = "netWorth" | "assets" | "debt" | "savings" | "risk";
+
 export default function InsightsPage() {
   const { formatCurrency } = useCurrency();
+  const [assumptions, setAssumptions] = useState(defaultAssumptions);
+  const [selectedInsight, setSelectedInsight] = useState<InsightKey | null>(null);
 
-  const { data: insights } = useQuery({ queryKey: ["/api/insights"] });
-  const { data: savingsData } = useQuery({ queryKey: ["/api/savings-projection"] });
-  const { data: netWorthData } = useQuery({ queryKey: ["/api/net-worth-projection"] });
+  const { data: investments } = useQuery({ queryKey: ["/api/investments"] });
+  const { data: bills } = useQuery({ queryKey: ["/api/bills"] });
+  const { data: transactions } = useQuery({ queryKey: ["/api/transactions"] });
+  const { data: incomes } = useQuery({ queryKey: ["/api/incomes"] });
 
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case "alert": return <AlertTriangle className="h-5 w-5" />;
-      case "goal": return <Target className="h-5 w-5" />;
-      case "tip": return <Lightbulb className="h-5 w-5" />;
-      case "recommendation": return <TrendingUp className="h-5 w-5" />;
-      default: return <Brain className="h-5 w-5" />;
-    }
-  };
+  const metrics = useMemo(() => calculateInsightMetrics({
+    investments: Array.isArray(investments) ? investments : [],
+    bills: Array.isArray(bills) ? bills : [],
+    transactions: Array.isArray(transactions) ? transactions : [],
+    incomes: Array.isArray(incomes) ? incomes : [],
+    assumptions,
+  }), [investments, bills, transactions, incomes, assumptions]);
 
-  const getInsightColor = (type: string) => {
-    switch (type) {
-      case "alert": return "bg-red-100 text-red-800";
-      case "goal": return "bg-green-100 text-green-800";
-      case "tip": return "bg-yellow-100 text-yellow-800";
-      case "recommendation": return "bg-blue-100 text-blue-800";
-      default: return "bg-muted text-foreground";
-    }
-  };
+  const cards = [
+    { key: "netWorth" as const, title: "📈 Projected Net Worth (1 / 5 / 10 years)", value: `${formatCurrency(metrics.projectedNetWorth.one)} / ${formatCurrency(metrics.projectedNetWorth.five)} / ${formatCurrency(metrics.projectedNetWorth.ten)}` },
+    { key: "assets" as const, title: "💰 Total Invested Assets", value: formatCurrency(metrics.totalInvestedAssets) },
+    { key: "debt" as const, title: "📉 Expected Debt Reduction Timeline", value: metrics.expectedDebtReductionTimelineMonths ? `${metrics.expectedDebtReductionTimelineMonths} months` : "No debt pressure detected" },
+    { key: "savings" as const, title: "💸 Monthly Savings Potential", value: formatCurrency(metrics.monthlySavingsPotential) },
+    { key: "risk" as const, title: "⚠️ Risk Exposure Summary", value: `Equity-like ${formatCurrency(metrics.riskExposureSummary.equityLikeAssets)} | Stable ${formatCurrency(metrics.riskExposureSummary.stableAssets)}` },
+  ];
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
@@ -40,122 +45,67 @@ export default function InsightsPage() {
         <Topbar />
         <div className="p-4 sm:p-6 lg:p-8 space-y-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Insights & Future Fund Projection</h1>
-            <p className="text-muted-foreground">Unified view of savings, investments, PF growth, and debt obligations.</p>
+            <h1 className="text-2xl font-bold text-foreground">Insights Section</h1>
+            <p className="text-muted-foreground">Transparent projections built from investments, bills/utilities, regular expenses, and incomes.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"><CardContent className="p-6"><p className="text-sm opacity-90">Savings Rate</p><p className="text-2xl font-bold">{savingsData?.currentSavingsRate?.toFixed(1) || 0}%</p></CardContent></Card>
-            <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white"><CardContent className="p-6"><p className="text-sm opacity-90">Monthly Savings</p><p className="text-2xl font-bold">{formatCurrency(netWorthData?.monthlySavings || savingsData?.projectedMonthlySavings || 0)}</p></CardContent></Card>
-            <Card className="bg-gradient-to-r from-orange-500 to-red-600 text-white"><CardContent className="p-6"><p className="text-sm opacity-90">Monthly Debt/EMI</p><p className="text-2xl font-bold">{formatCurrency(netWorthData?.monthlyDebtObligation || 0)}</p></CardContent></Card>
-            <Card className="bg-gradient-to-r from-indigo-500 to-blue-700 text-white"><CardContent className="p-6"><p className="text-sm opacity-90">Current Investment Pool</p><p className="text-2xl font-bold">{formatCurrency(savingsData?.totalInvestments || 0)}</p></CardContent></Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {cards.map((card) => (
+              <Card key={card.key} className="cursor-pointer hover:border-primary/60 transition-colors" onClick={() => setSelectedInsight(card.key)}>
+                <CardHeader><CardTitle className="text-base">{card.title}</CardTitle></CardHeader>
+                <CardContent><p className="text-xl font-semibold">{card.value}</p><p className="text-xs text-muted-foreground mt-1">Click to view data sources, formulas, and assumptions.</p></CardContent>
+              </Card>
+            ))}
           </div>
-
-          <Card>
-            <CardHeader><CardTitle className="flex items-center"><Landmark className="mr-2 h-5 w-5" />Future Wealth Projection (after debt)</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[{k:"oneYear", l:"1 Year"},{k:"fiveYears", l:"5 Years"},{k:"tenYears", l:"10 Years"}].map((item) => (
-                  <div key={item.k} className="border rounded-lg p-4 bg-muted/20">
-                    <p className="text-sm text-muted-foreground">{item.l}</p>
-                    <p className="text-xl font-bold text-foreground">{formatCurrency(netWorthData?.projectedNetWorth?.[item.k] || 0)}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Debt-adjusted projection from salary + investments</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="flex items-center"><Target className="mr-2 h-5 w-5" />PF Retirement Projection</CardTitle></CardHeader>
-            <CardContent>
-              {savingsData?.pfPrincipal > 0 ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">Projected using fixed PF interest rate of {savingsData?.pfInterestRate || 8.25}%.</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[50, 55, 60].map((age) => (
-                      <div key={age} className="rounded-lg border p-4 bg-muted/30">
-                        <p className="text-sm text-muted-foreground">At age {age}</p>
-                        <p className="text-lg font-semibold text-foreground">{formatCurrency(savingsData?.pfRetirementProjection?.[`age${age}`] || 0)}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Current PF total considered: {formatCurrency(savingsData?.pfPrincipal || 0)}</p>
-                    <p>Current company PF total: {formatCurrency(savingsData?.pfCurrentCompanyTotal || 0)}</p>
-                    <p>Previous company PF total: {formatCurrency(savingsData?.pfPreviousCompanyTotal || 0)}</p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">Add PF investment entries with current/previous company choice to view age 50-60 retirement projection.</p>
-              )}
-            </CardContent>
-          </Card>
-
-
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Target className="mr-2 h-5 w-5" />
-                PF Retirement Projection
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {savingsData?.pfPrincipal > 0 ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Based on your current PF + company contributions and fixed PF interest rate of {savingsData?.pfInterestRate || 8.25}%.
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[50, 55, 60].map((age) => (
-                      <div key={age} className="rounded-lg border p-4 bg-muted/30">
-                        <p className="text-sm text-muted-foreground">At age {age}</p>
-                        <p className="text-lg font-semibold text-foreground">
-                          {formatCurrency(savingsData?.pfRetirementProjection?.[`age${age}`] || 0)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Current PF: {formatCurrency(savingsData?.pfPrincipal || 0)}</p>
-                    <p>Current company PF amount: {formatCurrency(savingsData?.pfCurrentCompanyTotal || 0)}</p>
-                    <p>Previous company PF amount: {formatCurrency(savingsData?.pfPreviousCompanyTotal || 0)}</p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">Add a PF investment with current and previous company details to view retirement projection for ages 50-60.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle className="flex items-center"><Brain className="mr-2 h-5 w-5" />Personalized Insights</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Array.isArray(insights) && insights.length > 0 ? insights.map((insight: any, index: number) => (
-                  <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start space-x-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getInsightColor(insight.type)}`}>{getInsightIcon(insight.type)}</div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-foreground">{insight.title}</h3>
-                          <Badge variant="secondary" className="text-xs">{insight.priority} priority</Badge>
-                        </div>
-                        <p className="text-muted-foreground">{insight.message}</p>
-                      </div>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="text-center py-8">
-                    <Wallet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Add salary, expenses, bills/EMIs, and investment details to generate personalized insights.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
+
+      <Dialog open={Boolean(selectedInsight)} onOpenChange={(open) => !open && setSelectedInsight(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Insight Explanation & Assumptions</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <div className="rounded-md border p-3 bg-muted/20">
+              <p className="font-medium mb-1">A. Data Used</p>
+              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                <li>Investments considered: {Array.isArray(investments) ? investments.length : 0}</li>
+                <li>Bills & utilities included: {Array.isArray(bills) ? bills.length : 0}</li>
+                <li>Expense transactions included: {Array.isArray(transactions) ? transactions.filter((t: any) => String(t.type).toLowerCase() === "expense").length : 0}</li>
+                <li>Income records considered: {Array.isArray(incomes) ? incomes.length : 0}</li>
+                <li>Assumptions: return {assumptions.expectedReturn}%, inflation {assumptions.inflation}%, expense growth {assumptions.expenseGrowth}%</li>
+              </ul>
+            </div>
+
+            <div className="rounded-md border p-3 bg-muted/20">
+              <p className="font-medium mb-1">B. Calculation Method</p>
+              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                <li>SIP future value formula: FV = P × [((1+r)^n - 1)/r] × (1+r).</li>
+                <li>Compound interest formula: A = P × (1 + r/n)^(nt).</li>
+                <li>Net Worth formula: Total Assets − Total Liabilities.</li>
+              </ul>
+            </div>
+
+            <div className="rounded-md border p-3 bg-muted/20">
+              <p className="font-medium mb-1">C. Step-by-Step Breakdown</p>
+              <p className="text-muted-foreground">Total monthly SIP/savings considered = {formatCurrency(metrics.monthlySavingsPotential)}</p>
+              <p className="text-muted-foreground">Average return assumed = {assumptions.expectedReturn}%</p>
+              <p className="text-muted-foreground">Time period = 10 years</p>
+              <p className="text-muted-foreground">Projected corpus = {formatCurrency(metrics.sipCorpusExample)}</p>
+            </div>
+
+            <div className="rounded-md border p-3 bg-muted/20 space-y-2">
+              <p className="font-medium mb-1">D. Adjustable Assumptions</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div><Label>Expected return %</Label><Input type="number" value={assumptions.expectedReturn} onChange={(e) => setAssumptions((prev) => ({ ...prev, expectedReturn: Number(e.target.value) }))} /></div>
+                <div><Label>Inflation %</Label><Input type="number" value={assumptions.inflation} onChange={(e) => setAssumptions((prev) => ({ ...prev, inflation: Number(e.target.value) }))} /></div>
+                <div><Label>Expense growth rate %</Label><Input type="number" value={assumptions.expenseGrowth} onChange={(e) => setAssumptions((prev) => ({ ...prev, expenseGrowth: Number(e.target.value) }))} /></div>
+              </div>
+              <Button variant="outline" onClick={() => setSelectedInsight(selectedInsight)}>Recalculate instantly</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
