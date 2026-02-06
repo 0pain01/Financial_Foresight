@@ -14,11 +14,12 @@ import Topbar from "@/components/layout/topbar";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import type { Transaction } from "@/types/api";
 
 export default function TransactionsPage() {
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isCSVModalOpen, setIsCSVModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -27,7 +28,7 @@ export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const { formatCurrency } = useCurrency();
 
-  const { data: transactions, isLoading } = useQuery({
+  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
   });
 
@@ -52,7 +53,7 @@ export default function TransactionsPage() {
     }
   });
 
-  const handleEdit = (transaction: any) => {
+  const handleEdit = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsEditModalOpen(true);
   };
@@ -64,14 +65,14 @@ export default function TransactionsPage() {
   };
 
   // Filter transactions based on search and filters
-  const filteredTransactions = transactions?.filter((transaction: any) => {
+  const filteredTransactions = transactions.filter((transaction: Transaction) => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || !selectedCategory || transaction.category === selectedCategory;
     const matchesType = selectedType === "all" || !selectedType || transaction.type === selectedType;
     
     return matchesSearch && matchesCategory && matchesType;
-  }) || [];
+  });
 
   const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
 
@@ -179,7 +180,7 @@ export default function TransactionsPage() {
             ) : (
               <div className="space-y-4">
                 {filteredTransactions.length > 0 ? (
-                  filteredTransactions.map((transaction: any) => (
+                  filteredTransactions.map((transaction: Transaction) => (
                     <div key={transaction.id} className="flex items-center space-x-4 py-4 border-b last:border-b-0">
                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                         transaction.type === 'income' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
@@ -196,8 +197,17 @@ export default function TransactionsPage() {
                           {transaction.paymentMethod && (
                             <span className="text-sm text-muted-foreground">• {transaction.paymentMethod}</span>
                           )}
+                          {transaction.intentTag && (
+                            <Badge variant="outline" className="text-xs">{transaction.intentTag}</Badge>
+                          )}
+                          {transaction.confidenceIndicator && (
+                            <Badge variant="secondary" className="text-xs">{transaction.confidenceIndicator}</Badge>
+                          )}
                         </div>
                       </div>
+                      {transaction.goalImpact && (
+                        <p className="text-xs text-muted-foreground mt-1">{transaction.goalImpact}</p>
+                      )}
                       <div className="flex items-center space-x-2">
                         <div className={`text-lg font-semibold ${
                           transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
@@ -228,7 +238,7 @@ export default function TransactionsPage() {
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">
-                      {transactions && transactions.length > 0 
+                      {transactions.length > 0 
                         ? "No transactions match your search criteria." 
                         : "No transactions found. Add your first transaction to get started!"
                       }

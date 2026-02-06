@@ -34,6 +34,30 @@ public class Transaction {
     @Column(name = "payment_method")
     private String paymentMethod;
 
+    @Column(name = "intent_tag")
+    private String intentTag;
+
+    @Column(name = "confidence_indicator")
+    private String confidenceIndicator;
+
+    @Column(name = "context_tag")
+    private String contextTag;
+
+    @Column(name = "goal_impact")
+    private String goalImpact;
+
+    @Column(name = "is_planned")
+    private Boolean isPlanned;
+
+    @Column(name = "repeat_pattern")
+    private String repeatPattern;
+
+    @Column(name = "parent_transaction_id")
+    private Long parentTransactionId;
+
+    @Column(name = "recurring_group_key")
+    private String recurringGroupKey;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 }
