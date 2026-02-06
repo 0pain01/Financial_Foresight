@@ -10,10 +10,12 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import SpendingAnalysisChart from "@/components/charts/3d-bar-chart";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function AnalyticsPage() {
   const [duration, setDuration] = useState("6months");
-  
+  const { formatCurrency } = useCurrency();
+
   const { data: transactions } = useQuery({
     queryKey: ["/api/transactions"],
   });
@@ -177,12 +179,6 @@ export default function AnalyticsPage() {
 
   const threeDChartData = prepare3DChartData();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   return (
     <div className="min-h-screen flex bg-background">

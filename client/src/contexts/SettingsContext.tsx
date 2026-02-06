@@ -46,9 +46,9 @@ interface SettingsProviderProps {
 }
 
 const defaultProfile: UserProfile = {
-  fullName: "John Doe",
-  email: "john.doe@example.com",
-  phone: "98765 43210",
+  fullName: "",
+  email: "",
+  phone: "",
   phoneCode: "+91",
   timezone: "IST"
 };

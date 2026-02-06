@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Target, DollarSign } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function NetWorthProjection() {
   const { data: savingsData, isLoading: savingsLoading } = useQuery({
@@ -33,15 +34,7 @@ export default function NetWorthProjection() {
 
   const savings = savingsData || {};
   const netWorth = netWorthData || {};
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrency();
 
   const projections = [
     {
