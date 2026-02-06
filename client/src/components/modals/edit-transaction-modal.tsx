@@ -52,12 +52,32 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: getDefaultValues()
+    defaultValues: {
+      amount: "",
+      description: "",
+      category: "",
+      type: "expense",
+      date: new Date().toISOString().split('T')[0],
+      paymentMethod: "",
+      intentTag: "Optional",
+      repeatPattern: "none",
+      isPlanned: false
+    }
   });
 
   React.useEffect(() => {
-    if (!isOpen) {
-      return;
+    if (transaction) {
+      form.reset({
+        amount: transaction.amount || "",
+        description: transaction.description || "",
+        category: transaction.category || "",
+        type: transaction.type || "expense",
+        date: transaction.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        paymentMethod: transaction.paymentMethod || "",
+        intentTag: transaction.intentTag || "Optional",
+        repeatPattern: transaction.repeatPattern || "none",
+        isPlanned: Boolean(transaction.isPlanned)
+      });
     }
 
     if (!transaction) {
@@ -108,7 +128,18 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
   };
 
   const intentTags = ["Necessary", "Optional", "Investment in self", "Emotional", "Convenience tax", "Regret spend"];
-  const categories = ["Food & Dining", "Transportation", "Shopping", "Bills & Utilities", "Entertainment", "Healthcare", "Housing", "Income", "Other"];
+
+  const categories = [
+    "Food & Dining",
+    "Transportation", 
+    "Shopping",
+    "Bills & Utilities",
+    "Entertainment",
+    "Healthcare",
+    "Housing",
+    "Income",
+    "Other"
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -198,6 +229,54 @@ export default function EditTransactionModal({ isOpen, onClose, transaction }: E
                   <FormControl>
                     <Input {...field} placeholder="Enter transaction description" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="intentTag"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intent Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {intentTags.map((intent) => (
+                        <SelectItem key={intent} value={intent}>{intent}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="repeatPattern"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Repeat Pattern</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Updating this only changes this entry; future generated entries can be edited separately.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
