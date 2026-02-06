@@ -143,6 +143,34 @@ public class InsightsController {
         double totalInvestments = investments.stream()
                 .mapToDouble(i -> parse(nullToZero(i.getCurrentValue()))).sum();
 
+        List<Investment> pfInvestments = investments.stream()
+                .filter(i -> "pf".equalsIgnoreCase(Optional.ofNullable(i.getType()).orElse("")))
+                .toList();
+
+        double totalCurrentPf = pfInvestments.stream()
+                .mapToDouble(i -> parse(nullToZero(i.getCurrentValue()))).sum();
+        double totalPfCurrentCompany = pfInvestments.stream()
+                .mapToDouble(i -> parse(nullToZero(i.getPfCurrentCompany()))).sum();
+        double totalPfPreviousCompany = pfInvestments.stream()
+                .mapToDouble(i -> parse(nullToZero(i.getPfPreviousCompany()))).sum();
+        double pfPrincipal = totalCurrentPf + totalPfCurrentCompany + totalPfPreviousCompany;
+
+        double weightedAgeSum = pfInvestments.stream()
+                .mapToDouble(i -> {
+                    double amount = parse(nullToZero(i.getCurrentValue()));
+                    double age = parse(nullToZero(i.getPfCurrentAge()));
+                    return amount * age;
+                }).sum();
+        double inferredCurrentAge = totalCurrentPf > 0 ? weightedAgeSum / totalCurrentPf : 30;
+
+        final double pfInterestRate = 8.25;
+        Map<String, Double> pfRetirementProjection = new LinkedHashMap<>();
+        for (int retirementAge : new int[]{50, 55, 60}) {
+            double years = Math.max(0, retirementAge - inferredCurrentAge);
+            double projectedAmount = pfPrincipal * Math.pow(1 + (pfInterestRate / 100), years);
+            pfRetirementProjection.put("age" + retirementAge, projectedAmount);
+        }
+
         Map<String, Object> projection = new LinkedHashMap<>();
         projection.put("currentSavings", currentSavings);
         projection.put("projectedMonthlySavings", currentSavings);
@@ -159,6 +187,12 @@ public class InsightsController {
                 "fiveYears", currentSavings * 60 + totalInvestments * 1.4,
                 "tenYears", currentSavings * 120 + totalInvestments * 1.97
         ));
+        projection.put("pfInterestRate", pfInterestRate);
+        projection.put("pfPrincipal", pfPrincipal);
+        projection.put("pfCurrentCompanyTotal", totalPfCurrentCompany);
+        projection.put("pfPreviousCompanyTotal", totalPfPreviousCompany);
+        projection.put("pfInferredCurrentAge", inferredCurrentAge);
+        projection.put("pfRetirementProjection", pfRetirementProjection);
 
         return ResponseEntity.ok(projection);
     }
@@ -203,7 +237,6 @@ public class InsightsController {
         double currentSavings = totalIncome - totalExpenses;
         double totalInvestments = investments.stream()
                 .mapToDouble(i -> parse(nullToZero(i.getCurrentValue()))).sum();
-
         double currentAssets = currentSavings + totalInvestments;
         double currentDebts = 0; // No debt tracking in current schema
 

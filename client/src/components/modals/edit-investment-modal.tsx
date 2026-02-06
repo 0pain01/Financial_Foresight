@@ -22,7 +22,10 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
     shares: "",
     avgCost: "",
     currentValue: "",
-    purchaseDate: ""
+    purchaseDate: "",
+    pfCurrentAge: "",
+    pfCurrentCompany: "",
+    pfPreviousCompany: "",
   });
 
   const { getCurrencySymbol } = useCurrency();
@@ -38,20 +41,28 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
         shares: investment.shares || "",
         avgCost: investment.avgCost || "",
         currentValue: investment.currentValue || "",
-        purchaseDate: investment.purchaseDate ? new Date(investment.purchaseDate).toISOString().split('T')[0] : ""
+        purchaseDate: investment.purchaseDate ? new Date(investment.purchaseDate).toISOString().split('T')[0] : "",
+        pfCurrentAge: investment.pfCurrentAge || "",
+        pfCurrentCompany: investment.pfCurrentCompany || investment.avgCost || "",
+        pfPreviousCompany: investment.pfPreviousCompany || investment.shares || "",
       });
     }
   }, [investment]);
 
   const updateInvestmentMutation = useMutation({
     mutationFn: async (data: any) => {
+      const payload = {
+        ...data,
+        pfCurrentCompany: data.type === "pf" ? data.avgCost : null,
+        pfPreviousCompany: data.type === "pf" ? data.shares : null,
+      };
       const response = await fetch(`http://localhost:8080/api/investments/${investment.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) {
         throw new Error('Failed to update investment');
@@ -85,9 +96,11 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const isPfInvestment = formData.type === "pf";
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Investment</DialogTitle>
         </DialogHeader>
@@ -99,7 +112,7 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
                 id="symbol"
                 value={formData.symbol}
                 onChange={(e) => handleInputChange("symbol", e.target.value)}
-                placeholder="AAPL"
+                placeholder={isPfInvestment ? "UAN" : "AAPL"}
                 required
               />
             </div>
@@ -109,7 +122,7 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="Apple Inc."
+                placeholder={isPfInvestment ? "Employee Provident Fund" : "Apple Inc."}
                 required
               />
             </div>
@@ -136,19 +149,19 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="shares">Shares</Label>
+              <Label htmlFor="shares">{isPfInvestment ? "Previous Company PF Amount" : "Shares"}</Label>
               <Input
                 id="shares"
                 type="number"
                 step="0.01"
                 value={formData.shares}
                 onChange={(e) => handleInputChange("shares", e.target.value)}
-                placeholder="10"
+                placeholder="0"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="avgCost">Average Cost</Label>
+              <Label htmlFor="avgCost">{isPfInvestment ? "Current Company PF Amount" : "Average Cost"}</Label>
               <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
               <Input
@@ -166,7 +179,7 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="currentValue">Current Value</Label>
+            <Label htmlFor="currentValue">{isPfInvestment ? "Current PF Balance" : "Current Value"}</Label>
             <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{getCurrencySymbol()}</span>
             <Input
@@ -181,6 +194,22 @@ export default function EditInvestmentModal({ isOpen, onClose, investment }: Edi
             />
           </div>
           </div>
+
+          {isPfInvestment && (
+            <div className="space-y-2">
+              <Label htmlFor="pfCurrentAge">Current Age</Label>
+              <Input
+                id="pfCurrentAge"
+                type="number"
+                min="18"
+                max="60"
+                value={formData.pfCurrentAge}
+                onChange={(e) => handleInputChange("pfCurrentAge", e.target.value)}
+                placeholder="32"
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="purchaseDate">Purchase Date</Label>
