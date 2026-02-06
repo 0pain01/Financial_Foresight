@@ -7,6 +7,14 @@ export interface Transaction {
   type: string;
   date: string;
   paymentMethod?: string;
+  intentTag?: string;
+  confidenceIndicator?: string;
+  contextTag?: string;
+  goalImpact?: string;
+  isPlanned?: boolean;
+  repeatPattern?: string;
+  parentTransactionId?: number;
+  recurringGroupKey?: string;
   createdAt: string;
 }
 
