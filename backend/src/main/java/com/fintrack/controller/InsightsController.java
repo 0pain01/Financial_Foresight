@@ -233,8 +233,6 @@ public class InsightsController {
 
         double currentAssets = Math.max(0, monthlySavings) + totalInvestments;
         double currentDebts = Math.max(0, monthlyBills);
-        double currentAssets = currentSavings + totalInvestments;
-        double currentDebts = 0; // No debt tracking in current schema
 
         Map<String, Object> projection = new LinkedHashMap<>();
         projection.put("currentAssets", currentAssets);
