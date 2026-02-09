@@ -2,6 +2,7 @@ package com.fintrack.controller;
 
 import com.fintrack.model.*;
 import com.fintrack.repository.*;
+import com.fintrack.util.RecurringBillService;
 import com.fintrack.util.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,9 @@ public class DashboardController {
     @Autowired
     private UserUtil userUtil;
 
+    @Autowired
+    private RecurringBillService recurringBillService;
+
     public DashboardController(TransactionRepository transactionRepository,
                                BillRepository billRepository,
                                IncomeRepository incomeRepository,
@@ -39,6 +43,8 @@ public class DashboardController {
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        recurringBillService.autoPopulateNextCycleBills(userId);
 
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         List<Bill> bills = billRepository.findByUserId(userId);
@@ -158,6 +164,8 @@ public class DashboardController {
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        recurringBillService.autoPopulateNextCycleBills(userId);
 
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
         List<Bill> bills = billRepository.findByUserId(userId);

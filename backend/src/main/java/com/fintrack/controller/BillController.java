@@ -2,6 +2,7 @@ package com.fintrack.controller;
 
 import com.fintrack.model.Bill;
 import com.fintrack.repository.BillRepository;
+import com.fintrack.util.RecurringBillService;
 import com.fintrack.util.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class BillController {
     @Autowired
     private UserUtil userUtil;
 
+    @Autowired
+    private RecurringBillService recurringBillService;
+
     public BillController(BillRepository billRepository) {
         this.billRepository = billRepository;
     }
@@ -31,6 +35,7 @@ public class BillController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         System.out.println("Received GET /bills request for user: " + userId);
+        recurringBillService.autoPopulateNextCycleBills(userId);
         List<Bill> bills = billRepository.findByUserId(userId);
         System.out.println("Returning " + bills.size() + " bills");
         return ResponseEntity.ok(bills);
@@ -104,4 +109,5 @@ public class BillController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 }
